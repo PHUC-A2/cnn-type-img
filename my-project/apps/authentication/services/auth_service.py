@@ -69,17 +69,27 @@ class AuthService:
         return AuthResult(True, 'Đăng nhập thành công.', user)
 
     @staticmethod
-    def update_profile(user: User, full_name: str, email: str) -> AuthResult:
-        email = email.strip().lower()
+    def update_profile(user: User, full_name: str, username: str) -> AuthResult:
+        """Cập nhật họ tên và tên đăng nhập — email không đổi qua profile."""
         full_name = full_name.strip()
+        username = username.strip()
 
-        if User.objects.filter(email=email).exclude(id=user.id).exists():
-            return AuthResult(False, 'Email đã được sử dụng bởi tài khoản khác.')
+        if UserRepository.username_exists(username, exclude_id=user.id):
+            return AuthResult(False, 'Tên đăng nhập đã tồn tại.')
 
         user.full_name = full_name or None
-        user.email = email
+        user.username = username
         UserRepository.save(user)
         return AuthResult(True, 'Cập nhật hồ sơ thành công.', user)
+
+    @staticmethod
+    def change_password(user: User, new_password: str) -> AuthResult:
+        """Đổi mật khẩu sau khi form đã xác minh quyền."""
+        if len(new_password) < 6:
+            return AuthResult(False, 'Mật khẩu mới phải có ít nhất 6 ký tự.')
+        user.password = PasswordService.hash_password(new_password)
+        UserRepository.save(user)
+        return AuthResult(True, 'Đổi mật khẩu thành công.', user)
 
     @staticmethod
     def update_avatar(user: User, avatar_url: str) -> AuthResult:

@@ -110,12 +110,80 @@ class AuthViewTest(TestCase):
         })
         response = self.client.post(reverse('authentication:profile'), {
             'full_name': 'Updated Name',
-            'email': 'updated@test.com',
+            'username': 'viewuser_new',
         })
         self.assertRedirects(response, reverse('authentication:profile'))
-        user = UserRepository.get_by_username('viewuser')
+        user = UserRepository.get_by_username('viewuser_new')
         self.assertEqual(user.full_name, 'Updated Name')
-        self.assertEqual(user.email, 'updated@test.com')
+        self.assertEqual(user.email, 'view@test.com')
+
+    def test_profile_change_password_with_current(self):
+        self.client.post(reverse('authentication:login'), {
+            'username': 'viewuser',
+            'password': 'password123',
+        })
+        response = self.client.post(reverse('authentication:profile'), {
+            'full_name': 'View User',
+            'username': 'viewuser',
+            'new_password': 'newpass456',
+            'confirm_password': 'newpass456',
+            'current_password': 'password123',
+        })
+        self.assertRedirects(response, reverse('authentication:profile'))
+        login_result = AuthService.login('viewuser', 'newpass456')
+        self.assertTrue(login_result.success)
+
+    def test_profile_change_password_with_recovery_username(self):
+        self.client.post(reverse('authentication:login'), {
+            'username': 'viewuser',
+            'password': 'password123',
+        })
+        response = self.client.post(reverse('authentication:profile'), {
+            'full_name': 'View User',
+            'username': 'viewuser',
+            'new_password': 'recoverypass789',
+            'confirm_password': 'recoverypass789',
+            'use_password_recovery': 'on',
+            'recovery_username': 'viewuser',
+        })
+        self.assertRedirects(response, reverse('authentication:profile'))
+        login_result = AuthService.login('viewuser', 'recoverypass789')
+        self.assertTrue(login_result.success)
+
+    def test_profile_change_password_wrong_current(self):
+        self.client.post(reverse('authentication:login'), {
+            'username': 'viewuser',
+            'password': 'password123',
+        })
+        response = self.client.post(reverse('authentication:profile'), {
+            'full_name': 'View User',
+            'username': 'viewuser',
+            'new_password': 'newpass456',
+            'confirm_password': 'newpass456',
+            'current_password': 'wrongpass',
+        })
+        self.assertEqual(response.status_code, 200)
+        form = response.context['form']
+        self.assertIn('current_password', form.errors)
+        login_result = AuthService.login('viewuser', 'password123')
+        self.assertTrue(login_result.success)
+
+    def test_profile_change_password_wrong_recovery_username(self):
+        self.client.post(reverse('authentication:login'), {
+            'username': 'viewuser',
+            'password': 'password123',
+        })
+        response = self.client.post(reverse('authentication:profile'), {
+            'full_name': 'View User',
+            'username': 'viewuser',
+            'new_password': 'newpass456',
+            'confirm_password': 'newpass456',
+            'use_password_recovery': 'on',
+            'recovery_username': 'wronguser',
+        })
+        self.assertEqual(response.status_code, 200)
+        form = response.context['form']
+        self.assertIn('recovery_username', form.errors)
 
 
 class AdminRoleTest(TestCase):

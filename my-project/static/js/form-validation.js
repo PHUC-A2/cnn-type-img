@@ -53,10 +53,11 @@ document.addEventListener('alpine:init', () => {
         },
         profile: {
             full_name: () => '',
-            email: (v) => {
+            username: (v) => {
                 const s = asString(v).trim();
-                if (!s) return 'Vui lòng nhập email.';
-                if (!EMAIL_REGEX.test(s)) return 'Email không hợp lệ.';
+                if (!s) return 'Vui lòng nhập tên đăng nhập.';
+                if (s.length < 3) return 'Tên đăng nhập phải có ít nhất 3 ký tự.';
+                if (!USERNAME_REGEX.test(s)) return 'Tên đăng nhập chỉ được dùng chữ, số và dấu gạch dưới.';
                 return '';
             },
             avatar: (file) => {
@@ -69,6 +70,32 @@ document.addEventListener('alpine:init', () => {
                 if (file.size > MAX_AVATAR_MB * 1024 * 1024) {
                     return `Ảnh không được vượt quá ${MAX_AVATAR_MB}MB.`;
                 }
+                return '';
+            },
+            new_password: (v) => {
+                const s = asString(v);
+                if (!s) return '';
+                if (s.length < 6) return 'Mật khẩu mới phải có ít nhất 6 ký tự.';
+                return '';
+            },
+            confirm_password: (v, all) => {
+                const newPassword = asString(all.new_password);
+                if (!newPassword) return '';
+                const s = asString(v);
+                if (!s) return 'Vui lòng xác nhận mật khẩu mới.';
+                if (s !== newPassword) return 'Mật khẩu xác nhận không khớp.';
+                return '';
+            },
+            current_password: (v, all) => {
+                if (!asString(all.new_password)) return '';
+                if (all.use_password_recovery) return '';
+                if (!asString(v)) return 'Vui lòng nhập mật khẩu hiện tại.';
+                return '';
+            },
+            use_password_recovery: () => '',
+            recovery_username: (v, all) => {
+                if (!asString(all.new_password) || !all.use_password_recovery) return '';
+                if (!asString(v).trim()) return 'Vui lòng nhập tên đăng nhập để xác minh.';
                 return '';
             },
         },
@@ -148,8 +175,15 @@ document.addEventListener('alpine:init', () => {
         dragOver: false,
         fileName: '',
         uploading: false,
+        useRecovery: false,
+        avatarPreview: '',
+        avatarDragOver: false,
 
         init() {
+            if (this.formType === 'profile') {
+                this.avatarPreview = this.$el.dataset.avatarInitial || '';
+                this.useRecovery = !!this.getFieldValue('use_password_recovery');
+            }
             let serverErrorsJson = '{}';
             const errorsId = this.$el.dataset.errorsId;
             if (errorsId) {
@@ -234,6 +268,14 @@ document.addEventListener('alpine:init', () => {
             }
             this.validateField(name);
             if (name === 'password') this.validateField('password_confirm');
+            if (name === 'new_password') {
+                this.validateField('confirm_password');
+                this.validateField('current_password');
+                this.validateField('recovery_username');
+            }
+            if (name === 'confirm_password') this.validateField('confirm_password');
+            if (name === 'current_password') this.validateField('current_password');
+            if (name === 'recovery_username') this.validateField('recovery_username');
         },
 
         onBlur(name) {
@@ -259,7 +301,8 @@ document.addEventListener('alpine:init', () => {
             if (!rules || !rules[name]) return;
             const file = event.target.files[0] || null;
             if (file) this.fileName = file.name;
-            const error = rules[name](file);
+            const values = this.getValues();
+            const error = rules[name](file, values);
             if (error) {
                 this.errors[name] = error;
                 delete this.success[name];
@@ -271,6 +314,34 @@ document.addEventListener('alpine:init', () => {
                 delete this.success[name];
                 this.fileName = '';
             }
+        },
+
+        onRecoveryToggle(event) {
+            this.useRecovery = event.target.checked;
+            this.touched.use_password_recovery = true;
+            this.validateField('use_password_recovery');
+            this.validateField('current_password');
+            this.validateField('recovery_username');
+        },
+
+        onAvatarChange(event) {
+            const file = event.target.files[0] || null;
+            if (file) {
+                this.avatarPreview = URL.createObjectURL(file);
+            } else {
+                this.avatarPreview = this.$el.dataset.avatarInitial || '';
+            }
+            this.onFileChange('avatar', event);
+            this.$nextTick(() => {
+                if (window.lucide) lucide.createIcons();
+            });
+        },
+
+        avatarZoneClass() {
+            if (this.showError('avatar')) return 'avatar-upload-zone avatar-upload-zone-error';
+            if (this.success['avatar']) return 'avatar-upload-zone avatar-upload-zone-success';
+            if (this.avatarDragOver) return 'avatar-upload-zone avatar-upload-zone-drag';
+            return 'avatar-upload-zone';
         },
 
         handleDrop(event) {

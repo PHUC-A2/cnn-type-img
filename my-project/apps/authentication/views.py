@@ -87,33 +87,50 @@ def dashboard_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def profile_view(request: HttpRequest) -> HttpResponse:
-    """Quản lý hồ sơ cá nhân."""
-    initial = {
-        'full_name': request.user.full_name or '',
-        'email': request.user.email,
-    }
-    form = ProfileForm(request.POST or None, request.FILES or None, initial=initial)
+    """Quản lý hồ sơ cá nhân — chỉ sửa tên, username, avatar và mật khẩu."""
+    form = ProfileForm(
+        request.POST or None,
+        request.FILES or None,
+        user=request.user,
+        initial={
+            'full_name': request.user.full_name or '',
+            'username': request.user.username,
+        },
+    )
 
     if request.method == 'POST' and form.is_valid():
         result = AuthService.update_profile(
             user=request.user,
             full_name=form.cleaned_data.get('full_name', ''),
-            email=form.cleaned_data['email'],
+            username=form.cleaned_data['username'],
         )
         if not result.success:
             messages.error(request, result.message)
-        else:
-            avatar_file = form.cleaned_data.get('avatar')
-            if avatar_file:
-                try:
-                    AvatarStorageService.delete_old_avatar(request.user.avatar_url)
-                    avatar_url = AvatarStorageService.save_avatar(avatar_file, request.user.id)
-                    AuthService.update_avatar(request.user, avatar_url)
-                except ValueError as exc:
-                    messages.error(request, str(exc))
-                    return render(request, 'authentication/profile.html', {'form': form})
+            return render(request, 'authentication/profile.html', {'form': form})
 
-            messages.success(request, result.message)
-            return redirect('authentication:profile')
+        success_message = result.message
+
+        if form.wants_password_change():
+            password_result = AuthService.change_password(
+                user=request.user,
+                new_password=form.cleaned_data['new_password'],
+            )
+            if not password_result.success:
+                messages.error(request, password_result.message)
+                return render(request, 'authentication/profile.html', {'form': form})
+            success_message = 'Cập nhật hồ sơ và đổi mật khẩu thành công.'
+
+        avatar_file = form.cleaned_data.get('avatar')
+        if avatar_file:
+            try:
+                AvatarStorageService.delete_old_avatar(request.user.avatar_url)
+                avatar_url = AvatarStorageService.save_avatar(avatar_file, request.user.id)
+                AuthService.update_avatar(request.user, avatar_url)
+            except ValueError as exc:
+                messages.error(request, str(exc))
+                return render(request, 'authentication/profile.html', {'form': form})
+
+        messages.success(request, success_message)
+        return redirect('authentication:profile')
 
     return render(request, 'authentication/profile.html', {'form': form})

@@ -1,82 +1,116 @@
-<aside
-    class="hidden lg:flex flex-col w-[260px] aurora-sidebar fixed left-4 top-4 bottom-4 z-30"
-    x-data="{ mobileOpen: false }"
->
-    <!-- Logo -->
-    <div class="p-5 border-b border-[#E2E8F0]/80">
-        <a href="{% url 'authentication:dashboard' %}" class="flex items-center gap-3 group">
-            <div class="w-11 h-11 rounded-2xl aurora-logo flex items-center justify-center transition-transform group-hover:scale-105">
+{# Backdrop mobile — tap outside để đóng #}
+<div x-show="mobileOpen && viewport === 'mobile'"
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     @click="closeMobile()"
+     class="aurora-sidebar-backdrop fixed inset-0 z-40 md:hidden"
+     x-cloak></div>
+
+<aside :class="sidebarClass()"
+       @mouseenter="onTabletEnter()"
+       @mouseleave="onTabletLeave()">
+    <!-- Logo — cùng chiều cao với topbar trang -->
+    <div class="aurora-shell-header px-4 md:px-5 lg:px-5 border-b border-[#E2E8F0]/80 flex items-center justify-between gap-2 flex-shrink-0">
+        <a href="{% url 'authentication:dashboard' %}" class="flex items-center gap-3 group min-w-0 flex-1" @click="closeMobile()">
+            <div class="w-11 h-11 rounded-2xl aurora-logo flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
                 <i data-lucide="brain" class="w-5 h-5 text-white"></i>
             </div>
-            <div>
-                <p class="font-bold text-sm leading-tight text-[#0F172A]">Vision CNN</p>
-                <p class="text-xs text-[#94A3B8]">Nền tảng AI</p>
+            <div class="nav-label min-w-0" x-show="!isIconOnly()" x-transition.opacity>
+                <p class="font-bold text-sm leading-tight text-[#0F172A] truncate">Vision CNN</p>
+                <p class="text-xs text-[#94A3B8] truncate">Nền tảng AI</p>
             </div>
         </a>
+        <button type="button"
+                class="aurora-sidebar-toggle md:flex lg:hidden hidden flex-shrink-0"
+                @click.stop="toggleTablet()"
+                :title="tabletPinned ? 'Thu gọn sidebar' : 'Mở rộng sidebar'"
+                x-show="viewport === 'tablet' && !isIconOnly()">
+            <i data-lucide="panel-left" class="w-4 h-4"></i>
+        </button>
+        <button type="button"
+                class="aurora-sidebar-toggle md:hidden flex flex-shrink-0"
+                @click.stop="closeMobile()"
+                x-show="viewport === 'mobile'">
+            <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
-        <p class="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Không gian làm việc</p>
+    <nav class="flex-1 p-2 md:p-3 space-y-1 overflow-y-auto overflow-x-hidden">
+        <p class="nav-section-label px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]"
+           x-show="!isIconOnly()" x-transition.opacity>Không gian làm việc</p>
 
         <a href="{% url 'authentication:dashboard' %}"
-           class="nav-item {% if active_nav == 'dashboard' %}nav-item-active{% endif %}">
-            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-            <span>Bảng điều khiển</span>
+           class="nav-item {% if active_nav == 'dashboard' %}nav-item-active{% endif %}"
+           title="Bảng điều khiển"
+           @click="closeMobile()">
+            <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="nav-label truncate">Bảng điều khiển</span>
         </a>
         <a href="{% url 'datasets:list' %}"
-           class="nav-item {% if active_nav == 'datasets' %}nav-item-active{% endif %}">
-            <i data-lucide="database" class="w-5 h-5"></i>
-            <span>Bộ dữ liệu</span>
+           class="nav-item {% if active_nav == 'datasets' %}nav-item-active{% endif %}"
+           title="Bộ dữ liệu"
+           @click="closeMobile()">
+            <i data-lucide="database" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="nav-label truncate">Bộ dữ liệu</span>
         </a>
         <a href="{% url 'training:list' %}"
-           class="nav-item {% if active_nav == 'training' %}nav-item-active{% endif %}">
-            <i data-lucide="cpu" class="w-5 h-5"></i>
-            <span>Huấn luyện</span>
+           class="nav-item {% if active_nav == 'training' %}nav-item-active{% endif %}"
+           title="Huấn luyện"
+           @click="closeMobile()">
+            <i data-lucide="cpu" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="nav-label truncate">Huấn luyện</span>
         </a>
-        <a href="#" class="nav-item nav-item-disabled">
-            <i data-lucide="scan-eye" class="w-5 h-5"></i>
-            <span>Phân loại</span>
-            <span class="aurora-badge ml-auto">G5</span>
+        <a href="#" class="nav-item nav-item-disabled" title="Phân loại">
+            <i data-lucide="scan-eye" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="nav-label truncate">Phân loại</span>
+            <span class="aurora-badge ml-auto nav-label" x-show="!isIconOnly()">G5</span>
         </a>
-        <a href="#" class="nav-item nav-item-disabled">
-            <i data-lucide="chart-line" class="w-5 h-5"></i>
-            <span>Phân tích</span>
-            <span class="aurora-badge ml-auto">G7</span>
+        <a href="#" class="nav-item nav-item-disabled" title="Phân tích">
+            <i data-lucide="chart-line" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="nav-label truncate">Phân tích</span>
+            <span class="aurora-badge ml-auto nav-label" x-show="!isIconOnly()">G7</span>
         </a>
 
         {% if request.user.is_admin %}
         <div class="pt-4 mt-3 border-t border-[#E2E8F0]/80">
-            <p class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Quản trị</p>
-            <a href="#" class="nav-item nav-item-disabled">
-                <i data-lucide="shield" class="w-5 h-5"></i>
-                <span>Bảng quản trị</span>
-                <span class="aurora-badge ml-auto">G8</span>
+            <p class="nav-section-label px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]"
+               x-show="!isIconOnly()" x-transition.opacity>Quản trị</p>
+            <a href="#" class="nav-item nav-item-disabled" title="Bảng quản trị">
+                <i data-lucide="shield" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="nav-label truncate">Bảng quản trị</span>
+                <span class="aurora-badge ml-auto nav-label" x-show="!isIconOnly()">G8</span>
             </a>
         </div>
         {% endif %}
     </nav>
 
     <!-- User profile footer -->
-    <div class="p-3 border-t border-[#E2E8F0]/80">
+    <div class="p-2 md:p-3 border-t border-[#E2E8F0]/80">
         <a href="{% url 'authentication:profile' %}"
-           class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[#F8FAFC] transition-all duration-150">
+           class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[#F8FAFC] transition-all duration-150 min-w-0"
+           title="Hồ sơ cá nhân"
+           @click="closeMobile()">
             {% if request.user.avatar_url %}
                 <img src="{{ request.user.avatar_url }}" alt="Ảnh đại diện"
-                     class="w-10 h-10 rounded-full object-cover aurora-avatar-ring">
+                     class="w-10 h-10 rounded-full object-cover aurora-avatar-ring flex-shrink-0">
             {% else %}
-                <div class="w-10 h-10 rounded-full icon-bg-teal flex items-center justify-center">
+                <div class="w-10 h-10 rounded-full icon-bg-teal flex items-center justify-center flex-shrink-0">
                     <i data-lucide="user" class="w-5 h-5"></i>
                 </div>
             {% endif %}
-            <div class="min-w-0 flex-1">
+            <div class="nav-label min-w-0 flex-1" x-show="!isIconOnly()" x-transition.opacity>
                 <p class="text-sm font-semibold truncate text-[#0F172A]">{{ request.user.get_display_name }}</p>
                 <p class="text-xs text-[#94A3B8] truncate">{{ request.user.get_role_display }}</p>
             </div>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-[#94A3B8]"></i>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-[#94A3B8] flex-shrink-0 nav-label" x-show="!isIconOnly()"></i>
         </a>
     </div>
 </aside>
 
-<!-- Spacer cho sidebar fixed -->
-<div class="hidden lg:block w-[276px] flex-shrink-0"></div>
+<!-- Spacer — chỉ tablet (desktop/mobile sidebar không cần) -->
+<div :class="spacerClass()" class="flex-shrink-0 transition-all duration-[220ms] ease-out" aria-hidden="true"></div>

@@ -30,8 +30,12 @@ class UserRepository:
             return None
 
     @staticmethod
-    def username_exists(username: str) -> bool:
-        return User.objects.filter(username=username).exists()
+    def username_exists(username: str, exclude_id: int | None = None) -> bool:
+        """Kiểm tra trùng username — có thể loại trừ user hiện tại."""
+        qs = User.objects.filter(username=username)
+        if exclude_id is not None:
+            qs = qs.exclude(id=exclude_id)
+        return qs.exists()
 
     @staticmethod
     def email_exists(email: str) -> bool:

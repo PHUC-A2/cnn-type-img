@@ -5,43 +5,108 @@
 
 {% block content %}
 <div class="max-w-2xl">
-    <div class="aurora-card p-6">
-        <div class="flex items-center gap-5 mb-8 pb-6 border-b border-[#E2E8F0]">
-            {% if request.user.avatar_url %}
-                <img src="{{ request.user.avatar_url }}" alt="Ảnh đại diện"
-                     class="w-20 h-20 rounded-full object-cover aurora-avatar-ring">
-            {% else %}
-                <div class="w-20 h-20 rounded-full icon-bg-teal flex items-center justify-center">
-                    <i data-lucide="user" class="w-9 h-9"></i>
-                </div>
-            {% endif %}
-            <div>
-                <h2 class="text-xl font-bold text-[#0F172A]">{{ request.user.get_display_name }}</h2>
-                <p class="text-[#94A3B8] text-sm mt-0.5">@{{ request.user.username }} · {{ request.user.get_role_display }}</p>
-            </div>
-        </div>
-
-        <form method="post" enctype="multipart/form-data" novalidate class="space-y-5"
-              x-data="auroraForm('profile')" data-errors-id="profile-form-errors"
+    <div class="aurora-card p-6 sm:p-8">
+        <form method="post" enctype="multipart/form-data" novalidate class="space-y-8"
+              x-data="auroraForm('profile')"
+              data-errors-id="profile-form-errors"
+              data-avatar-initial="{{ request.user.avatar_url|default:'' }}"
               @submit="handleFormSubmit($event)">
             {% csrf_token %}
 
-            {% include 'base/partials/form_field_text.html' with field=form.full_name %}
-            {% include 'base/partials/form_field_text.html' with field=form.email %}
+            {# --- Ảnh đại diện --- #}
+            <section>
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="profile-section-title">Ảnh đại diện</h2>
+                        <p class="text-sm text-[#94A3B8] mt-0.5">JPG, PNG, WEBP, GIF — tối đa 5MB</p>
+                    </div>
+                    <span class="aurora-badge">Tuỳ chọn</span>
+                </div>
 
-            <div>
-                <label class="aurora-label" for="id_avatar">{{ form.avatar.label }}</label>
-                <input type="file" name="avatar" id="id_avatar" data-field="avatar"
-                       :class="fileClass('avatar')"
-                       @change="onFileChange('avatar', $event)">
-                <p class="text-xs text-[#94A3B8] mt-1">JPG, PNG, WEBP, GIF — tối đa 5MB</p>
-                <p x-show="showError('avatar')" x-cloak class="field-error-msg" x-text="errors['avatar']"></p>
+                <div class="flex flex-col sm:flex-row items-center gap-6">
+                    <label for="id_avatar" class="avatar-upload-zone cursor-pointer" :class="avatarZoneClass()">
+                        <div class="avatar-preview-ring">
+                            <img x-show="avatarPreview" x-cloak :src="avatarPreview" alt="Xem trước ảnh đại diện"
+                                 class="w-full h-full object-cover">
+                            <div x-show="!avatarPreview" class="avatar-placeholder">
+                                <i data-lucide="user" class="w-10 h-10"></i>
+                            </div>
+                            <div class="avatar-upload-overlay">
+                                <i data-lucide="camera" class="w-5 h-5"></i>
+                                <span class="text-sm font-semibold">Chọn ảnh</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <div class="flex-1 text-center sm:text-left">
+                        <p class="text-sm font-medium text-[#334155]">Tải ảnh đại diện mới</p>
+                        <p class="text-xs text-[#94A3B8] mt-1">Nhấn vào khung tròn hoặc kéo thả ảnh vào đó.</p>
+                        <p x-show="fileName" x-cloak class="text-xs text-[#0D9488] mt-2 font-medium" x-text="fileName"></p>
+                        <p x-show="showError('avatar')" x-cloak class="field-error-msg mt-2" x-text="errors['avatar']"></p>
+                    </div>
+                </div>
+
+                <input type="file" name="avatar" id="id_avatar" data-field="avatar" class="sr-only"
+                       accept="image/jpeg,image/png,image/webp,image/gif"
+                       @change="onAvatarChange($event)">
+            </section>
+
+            {# --- Thông tin cá nhân --- #}
+            <section class="pt-2 border-t border-[#E2E8F0]">
+                <h2 class="profile-section-title mb-4">Thông tin cá nhân</h2>
+                <div class="space-y-5">
+                    {% include 'base/partials/form_field_text.html' with field=form.full_name %}
+                    {% include 'base/partials/form_field_text.html' with field=form.username %}
+
+                    <div>
+                        <label class="aurora-label">Email</label>
+                        <input type="text" value="{{ request.user.email }}" readonly disabled
+                               class="aurora-input aurora-input-readonly" aria-readonly="true">
+                        <p class="text-xs text-[#94A3B8] mt-1">Email được liên kết với tài khoản và không thể thay đổi.</p>
+                    </div>
+                </div>
+            </section>
+
+            {# --- Đổi mật khẩu --- #}
+            <section class="pt-2 border-t border-[#E2E8F0]">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h2 class="profile-section-title">Đổi mật khẩu</h2>
+                        <p class="text-sm text-[#94A3B8] mt-0.5">Để trống nếu bạn không muốn đổi mật khẩu</p>
+                    </div>
+                    <span class="aurora-badge">Tuỳ chọn</span>
+                </div>
+
+                <div class="space-y-5">
+                    {% include 'base/partials/form_field_password.html' with field=form.new_password %}
+                    {% include 'base/partials/form_field_password.html' with field=form.confirm_password %}
+
+                    <div x-show="!useRecovery" x-cloak class="space-y-5">
+                        {% include 'base/partials/form_field_password.html' with field=form.current_password %}
+                    </div>
+
+                    <div class="flex items-start gap-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
+                        <input type="checkbox" name="use_password_recovery" id="id_use_password_recovery"
+                               data-field="use_password_recovery" class="aurora-checkbox mt-0.5"
+                               @change="onRecoveryToggle($event)">
+                        <label for="id_use_password_recovery" class="text-sm text-[#475569] cursor-pointer select-none">
+                            Quên mật khẩu hiện tại? Xác minh bằng tên đăng nhập để đổi mật khẩu mới.
+                        </label>
+                    </div>
+
+                    <div x-show="useRecovery" x-cloak>
+                        {% include 'base/partials/form_field_text.html' with field=form.recovery_username %}
+                        <p class="text-xs text-[#94A3B8] -mt-3">Nhập đúng tên đăng nhập của bạn để được phép đổi mật khẩu.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="pt-2 flex flex-col sm:flex-row gap-3">
+                <button type="submit" class="aurora-btn aurora-btn-primary">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    Lưu thay đổi
+                </button>
             </div>
-
-            <button type="submit" class="aurora-btn aurora-btn-primary">
-                <i data-lucide="save" class="w-4 h-4"></i>
-                Lưu thay đổi
-            </button>
         </form>
         {{ form.errors.as_json|json_script:"profile-form-errors" }}
     </div>

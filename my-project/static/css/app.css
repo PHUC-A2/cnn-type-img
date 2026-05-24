@@ -12,6 +12,8 @@
     --aurora-text-secondary: #475569;
     --aurora-text-muted: #94A3B8;
     --aurora-success: #10B981;
+    --aurora-header-h: 4.5rem;
+    --aurora-sidebar-w: 260px;
 }
 
 body {
@@ -41,12 +43,94 @@ body {
 
 /* Sidebar: trắng sạch, glass nhẹ */
 .aurora-sidebar {
-    background: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--aurora-border);
     border-radius: 1rem;
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+/* Desktop: sidebar cố định full-height sát trái */
+.aurora-sidebar-desktop {
+    width: var(--aurora-sidebar-w);
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    box-shadow: none;
+    overflow: hidden;
+}
+
+.aurora-shell-header {
+    min-height: var(--aurora-header-h);
+    height: var(--aurora-header-h);
+}
+
+.main-column {
+    background: var(--aurora-bg);
+}
+
+@media (min-width: 1024px) {
+    .aurora-topbar.aurora-shell-header {
+        border-radius: 0;
+        border: none;
+        border-bottom: 1px solid var(--aurora-border);
+        box-shadow: none;
+        background: rgba(255, 255, 255, 0.92);
+    }
+
+    .app-layout {
+        gap: 0;
+    }
+
+    .aurora-sidebar-desktop .aurora-shell-header {
+        border-bottom: 1px solid var(--aurora-border);
+    }
+}
+
+.aurora-sidebar-mobile {
+    border-left: none;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    box-shadow: 4px 0 24px rgba(15, 23, 42, 0.12);
+}
+
+.aurora-sidebar-backdrop {
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.aurora-sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.75rem;
+    color: var(--aurora-text-secondary);
+    background: #F8FAFC;
+    border: 1px solid var(--aurora-border);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.aurora-sidebar-toggle:hover {
+    background: #F0FDFA;
+    color: #0D9488;
+}
+
+/* Tablet icon-only — căn giữa icon nav */
+.aurora-sidebar-collapsed .nav-item {
+    justify-content: center;
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+}
+
+.aurora-sidebar-collapsed .nav-section-label {
+    display: none;
 }
 
 .nav-item {
@@ -361,6 +445,84 @@ body {
 .upload-zone-success {
     border-color: #6EE7B7;
     background: #ECFDF5;
+}
+
+.profile-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0F172A;
+}
+
+.aurora-input-readonly {
+    background: #F8FAFC;
+    color: #64748B;
+    border-color: #E2E8F0;
+    cursor: not-allowed;
+}
+
+.avatar-upload-zone {
+    position: relative;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    padding: 0.25rem;
+    border: 2px dashed #CBD5E1;
+    background: white;
+    transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+}
+
+.avatar-upload-zone:hover,
+.avatar-upload-zone-drag {
+    border-color: #22D3EE;
+    background: rgba(236, 254, 255, 0.45);
+    box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.12);
+}
+
+.avatar-upload-zone-error {
+    border-color: #FCA5A5;
+    background: #FEF2F2;
+}
+
+.avatar-upload-zone-success {
+    border-color: #6EE7B7;
+    background: #ECFDF5;
+}
+
+.avatar-preview-ring {
+    position: relative;
+    width: 7.5rem;
+    height: 7.5rem;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: #F1F5F9;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94A3B8;
+    background: linear-gradient(145deg, #F8FAFC 0%, #E2E8F0 100%);
+}
+
+.avatar-upload-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    color: white;
+    background: rgba(15, 23, 42, 0.55);
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.avatar-upload-zone:hover .avatar-upload-overlay,
+.avatar-upload-zone-drag .avatar-upload-overlay {
+    opacity: 1;
 }
 
 .aurora-textarea {
