@@ -1,14 +1,20 @@
-"""Management command tạo/đồng bộ tài khoản admin từ .env."""
+"""Khởi tạo database: migrate + tạo admin từ .env."""
 
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
 from apps.authentication.services.admin_init_service import AdminInitService
 
 
 class Command(BaseCommand):
-    help = 'Tạo hoặc đồng bộ tài khoản admin từ file .env'
+    help = 'Khởi tạo DB: chạy migrate và tạo tài khoản admin từ file .env'
 
     def add_arguments(self, parser):
+        parser.add_argument(
+            '--no-migrate',
+            action='store_true',
+            help='Bỏ qua bước migrate (chỉ tạo/kiểm tra admin)',
+        )
         parser.add_argument(
             '--sync',
             action='store_true',
@@ -16,6 +22,11 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        if not options['no_migrate']:
+            self.stdout.write('Running migrate...')
+            call_command('migrate', interactive=False, verbosity=options['verbosity'])
+            self.stdout.write(self.style.SUCCESS('Migrate done.'))
+
         result = AdminInitService.ensure_admin(sync=options['sync'])
         if not result.success:
             raise CommandError(f'Admin init failed: {result.message}')

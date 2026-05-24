@@ -111,3 +111,10 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = '/auth/dang-nhap/'
+
+# Khởi tạo admin — cấu hình trong .env, không hardcode nơi khác
+INIT_ADMIN_ENABLED = os.getenv('INIT_ADMIN_ENABLED', 'True') == 'True'
+INIT_ADMIN_USERNAME = os.getenv('INIT_ADMIN_USERNAME', 'admin')
+INIT_ADMIN_EMAIL = os.getenv('INIT_ADMIN_EMAIL', 'admin@gmail.com')
+INIT_ADMIN_PASSWORD = os.getenv('INIT_ADMIN_PASSWORD', 'admin123')
+INIT_ADMIN_FULL_NAME = os.getenv('INIT_ADMIN_FULL_NAME', 'Quản trị viên')
