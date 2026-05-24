@@ -30,13 +30,15 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',')
     if host.strip()
 ]
 
-# Danh sách app — không dùng DB mặc định của Django (auth/admin/sessions)
+# Danh sách app — custom auth, không dùng django.contrib.auth/admin
 INSTALLED_APPS = [
     'django.contrib.staticfiles',
+    'django.contrib.messages',
+    'apps.authentication',
     'core',
 ]
 
@@ -44,7 +46,9 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.authentication_middleware.AuthenticationMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -58,6 +62,8 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
+                'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.media',
             ],
         },
     },
@@ -85,9 +91,23 @@ TIME_ZONE = 'Asia/Ho_Chi_Minh'
 USE_I18N = True
 USE_TZ = True
 
-# Static files — cấu trúc sẵn sàng cho Tailwind CSS
+# Static & Media
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+MEDIA_URL = os.getenv('MEDIA_URL', '/media/')
+_media_root = os.getenv('MEDIA_ROOT', '').strip()
+MEDIA_ROOT = Path(_media_root) if _media_root else BASE_DIR / 'media'
+
+# Auth session cookie — signed cookie, không dùng bảng django_session
+AUTH_COOKIE_NAME = 'cnn_auth_session'
+AUTH_SESSION_MAX_AGE = 86400  # 1 ngày
+AUTH_REMEMBER_MAX_AGE = 86400 * 14  # 14 ngày (remember me)
+
+# Flash messages — lưu cookie, không cần session DB
+MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = '/auth/dang-nhap/'

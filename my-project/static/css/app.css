@@ -1,20 +1,347 @@
-/* CSS cơ bản — sẽ thay bằng Tailwind CSS ở phase sau */
+/* Aurora AI Theme — Clean AI Workspace (pr-bg.md) */
 
-body {
-    margin: 0;
-    font-family: Inter, system-ui, sans-serif;
-    background-color: #f9fafb;
-    color: #111827;
+:root {
+    --aurora-primary: #0F172A;
+    --aurora-secondary: #14B8A6;
+    --aurora-accent: #EC4899;
+    --aurora-highlight: #8B5CF6;
+    --aurora-bg: #F8FAFC;
+    --aurora-bg-soft: #F1F5F9;
+    --aurora-card: #FFFFFF;
+    --aurora-border: #E2E8F0;
+    --aurora-text-secondary: #475569;
+    --aurora-text-muted: #94A3B8;
+    --aurora-success: #10B981;
 }
 
-.hello-container {
+body {
+    font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
+    background-color: var(--aurora-bg);
+    color: var(--aurora-primary);
+}
+
+/* Nền app: flat hoặc gradient cực nhẹ — không blob/mesh */
+.app-shell {
+    min-height: 100vh;
+    background: linear-gradient(to bottom, #F8FAFC, #F1F5F9);
+}
+
+.aurora-card {
+    background: var(--aurora-card);
+    border: 1px solid var(--aurora-border);
+    border-radius: 1.5rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.aurora-card:hover {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    transform: translateY(-1px);
+}
+
+/* Sidebar: trắng sạch, glass nhẹ */
+.aurora-sidebar {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--aurora-border);
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--aurora-text-secondary);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.nav-item:hover:not(.nav-item-disabled) {
+    background: #F8FAFC;
+    color: var(--aurora-primary);
+}
+
+/* Active: soft tint — không gradient sidebar */
+.nav-item-active {
+    background: #F0FDFA;
+    color: #0D9488;
+    font-weight: 600;
+    border: 1px solid #CCFBF1;
+}
+
+.nav-item-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Topbar: nền trắng, blur nhẹ */
+.aurora-topbar {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--aurora-border);
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.aurora-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.aurora-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+}
+
+/* Gradient chỉ dùng cho primary button */
+.aurora-btn-primary {
+    background: linear-gradient(135deg, #22D3EE, #14B8A6, #10B981);
+    color: white;
+    box-shadow: 0 2px 8px rgba(20, 184, 166, 0.25);
+}
+
+.aurora-btn-accent {
+    background: linear-gradient(135deg, #EC4899, #A855F7, #06B6D4);
+    color: white;
+    box-shadow: 0 2px 8px rgba(236, 72, 153, 0.2);
+}
+
+.aurora-btn-secondary {
+    background: #F8FAFC;
+    color: var(--aurora-primary);
+    border: 1px solid var(--aurora-border);
+}
+
+.aurora-btn-ghost {
+    background: transparent;
+    color: var(--aurora-text-secondary);
+}
+
+.aurora-btn-ghost:hover {
+    background: #F8FAFC;
+    color: var(--aurora-primary);
+}
+
+.aurora-input {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    border-radius: 0.875rem;
+    border: 1px solid var(--aurora-border);
+    background: white;
+    font-size: 0.875rem;
+    color: var(--aurora-primary);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.aurora-input:focus {
+    outline: none;
+    border-color: #5EEAD4;
+    box-shadow: 0 0 0 3px rgba(94, 234, 212, 0.2);
+}
+
+.aurora-checkbox {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--aurora-secondary);
+    border-radius: 0.25rem;
+}
+
+.aurora-file {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.875rem;
+    border: 1px dashed #CBD5E1;
+    background: white;
+    font-size: 0.875rem;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.aurora-file:hover {
+    border-color: #22D3EE;
+    background: rgba(236, 254, 255, 0.4);
+}
+
+/* Logo: accent nhỏ — solid thay gradient mạnh */
+.aurora-logo {
+    background: #14B8A6;
+    box-shadow: 0 1px 3px rgba(20, 184, 166, 0.2);
+}
+
+.aurora-logo-accent {
+    background: #8B5CF6;
+    box-shadow: 0 1px 3px rgba(139, 92, 246, 0.2);
+}
+
+.icon-bg-teal { background: rgba(20, 184, 166, 0.1); color: #0D9488; }
+.icon-bg-cyan { background: rgba(6, 182, 212, 0.1); color: #0891B2; }
+.icon-bg-purple { background: rgba(139, 92, 246, 0.1); color: #7C3AED; }
+.icon-bg-pink { background: rgba(236, 72, 153, 0.1); color: #DB2777; }
+.icon-bg-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
+
+.aurora-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    background: #F1F5F9;
+    color: var(--aurora-text-muted);
+}
+
+.aurora-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.aurora-alert-success {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    color: #047857;
+}
+
+.aurora-alert-error {
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    color: #B91C1C;
+}
+
+.aurora-alert-info {
+    background: #F0FDFA;
+    border: 1px solid #CCFBF1;
+    color: #0F766E;
+}
+
+.aurora-link {
+    color: #0D9488;
+    font-weight: 600;
+    transition: color 0.15s;
+}
+
+.aurora-link:hover {
+    color: #0F766E;
+}
+
+/* AI highlight block: gradient rất nhạt, có kiểm soát */
+.ai-highlight-block {
+    background: linear-gradient(to right, #FDF4FF, #ECFEFF);
+    border: 1px solid #E9D5FF;
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.aurora-avatar-ring {
+    border: 2px solid #E2E8F0;
+    border-radius: 9999px;
+}
+
+.aurora-metric {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.aurora-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--aurora-text-secondary);
+    margin-bottom: 0.375rem;
+}
+
+.aurora-error {
+    font-size: 0.75rem;
+    color: #EF4444;
+    margin-top: 0.25rem;
+}
+
+/* Validation states — pr-f-nn.md */
+.field-error {
+    border-color: #FCA5A5 !important;
+    background-color: #FEF2F2 !important;
+}
+
+.field-error:focus {
+    border-color: #FCA5A5 !important;
+    box-shadow: 0 0 0 3px rgba(252, 165, 165, 0.25) !important;
+}
+
+.field-success {
+    border-color: #6EE7B7 !important;
+    background-color: #ECFDF5 !important;
+}
+
+.field-success:focus {
+    border-color: #6EE7B7 !important;
+    box-shadow: 0 0 0 3px rgba(110, 231, 183, 0.25) !important;
+}
+
+.field-error-msg {
+    font-size: 0.75rem;
+    color: #DC2626;
+    margin-top: 0.375rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.field-error-msg::before {
+    content: '•';
+}
+
+/* Nút hiện/ẩn mật khẩu */
+.password-field .password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    background: transparent;
+    color: #94A3B8;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: color 0.15s, background-color 0.15s;
 }
 
-.hello-container h1 {
-    font-size: 2rem;
-    font-weight: 600;
+.password-field .password-toggle:hover {
+    color: #475569;
+    background: #F1F5F9;
+}
+
+.password-field input {
+    width: 100%;
+}
+
+/* Auth card: trắng sạch, shadow nhẹ */
+.aurora-auth-card {
+    background: white;
+    border: 1px solid var(--aurora-border);
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    padding: 2rem;
 }

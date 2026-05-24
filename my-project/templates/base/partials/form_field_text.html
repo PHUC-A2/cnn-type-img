@@ -1,0 +1,17 @@
+{# Field text thường — validation inline Alpine.js #}
+<div>
+    <label class="aurora-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    <input
+        type="text"
+        name="{{ field.html_name }}"
+        id="{{ field.id_for_label }}"
+        value="{{ field.value|default:'' }}"
+        placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
+        autocomplete="{{ field.field.widget.attrs.autocomplete|default:'off' }}"
+        data-field="{{ field.name }}"
+        :class="fieldClass('{{ field.name }}')"
+        @input="onInput('{{ field.name }}')"
+        @blur="onBlur('{{ field.name }}')"
+    >
+    <p x-show="showError('{{ field.name }}')" x-cloak class="field-error-msg" x-text="errors['{{ field.name }}']"></p>
+</div>

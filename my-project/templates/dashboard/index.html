@@ -1,0 +1,81 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Bảng điều khiển — Vision CNN{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    <div class="aurora-card p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-[#94A3B8]">Trạng thái hệ thống</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#10B981]">Sẵn sàng</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl icon-bg-green flex items-center justify-center">
+                <i data-lucide="activity" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="aurora-card p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-[#94A3B8]">Bộ dữ liệu</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">—</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl icon-bg-cyan flex items-center justify-center">
+                <i data-lucide="database" class="w-5 h-5"></i>
+            </div>
+        </div>
+        <p class="text-xs text-[#94A3B8] mt-3">Giai đoạn 2</p>
+    </div>
+
+    <div class="aurora-card p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-[#94A3B8]">Mô hình CNN</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">—</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl icon-bg-purple flex items-center justify-center">
+                <i data-lucide="brain" class="w-5 h-5"></i>
+            </div>
+        </div>
+        <p class="text-xs text-[#94A3B8] mt-3">Giai đoạn 3</p>
+    </div>
+
+    <div class="aurora-card p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-[#94A3B8]">Dự đoán</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">—</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl icon-bg-pink flex items-center justify-center">
+                <i data-lucide="scan-eye" class="w-5 h-5"></i>
+            </div>
+        </div>
+        <p class="text-xs text-[#94A3B8] mt-3">Giai đoạn 5</p>
+    </div>
+</div>
+
+<div class="ai-highlight-block">
+    <div class="flex items-start gap-4">
+        <div class="w-12 h-12 rounded-2xl icon-bg-teal flex items-center justify-center flex-shrink-0">
+            <i data-lucide="sparkles" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <h2 class="text-lg font-bold text-[#0F172A]">
+                Chào mừng, {{ request.user.get_display_name }}!
+            </h2>
+            <p class="text-[#475569] mt-2 text-sm leading-relaxed">
+                Không gian làm việc AI đã sẵn sàng. Các module bộ dữ liệu, huấn luyện và dự đoán
+                sẽ được kích hoạt ở giai đoạn tiếp theo.
+            </p>
+            {% if request.user.is_admin %}
+            <div class="aurora-alert aurora-alert-info mt-4 mb-0">
+                <i data-lucide="shield" class="w-4 h-4"></i>
+                <span>Quyền <strong>quản trị viên</strong> — Bảng quản trị sẽ có ở giai đoạn 8.</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

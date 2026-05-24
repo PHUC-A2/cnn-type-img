@@ -1,0 +1,48 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Hồ sơ — Vision CNN{% endblock %}
+{% block page_heading %}Hồ sơ cá nhân{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="aurora-card p-6">
+        <div class="flex items-center gap-5 mb-8 pb-6 border-b border-[#E2E8F0]">
+            {% if request.user.avatar_url %}
+                <img src="{{ request.user.avatar_url }}" alt="Ảnh đại diện"
+                     class="w-20 h-20 rounded-full object-cover aurora-avatar-ring">
+            {% else %}
+                <div class="w-20 h-20 rounded-full icon-bg-teal flex items-center justify-center">
+                    <i data-lucide="user" class="w-9 h-9"></i>
+                </div>
+            {% endif %}
+            <div>
+                <h2 class="text-xl font-bold text-[#0F172A]">{{ request.user.get_display_name }}</h2>
+                <p class="text-[#94A3B8] text-sm mt-0.5">@{{ request.user.username }} · {{ request.user.get_role_display }}</p>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" novalidate class="space-y-5"
+              x-data="auroraForm('profile', '{{ form.errors.as_json|escapejs }}')"
+              @submit="if (!validateAll()) $event.preventDefault()">
+            {% csrf_token %}
+
+            {% include 'base/partials/form_field_text.html' with field=form.full_name %}
+            {% include 'base/partials/form_field_text.html' with field=form.email %}
+
+            <div>
+                <label class="aurora-label" for="id_avatar">{{ form.avatar.label }}</label>
+                <input type="file" name="avatar" id="id_avatar" data-field="avatar"
+                       :class="fileClass('avatar')"
+                       @change="onFileChange('avatar', $event)">
+                <p class="text-xs text-[#94A3B8] mt-1">JPG, PNG, WEBP, GIF — tối đa 5MB</p>
+                <p x-show="showError('avatar')" x-cloak class="field-error-msg" x-text="errors['avatar']"></p>
+            </div>
+
+            <button type="submit" class="aurora-btn aurora-btn-primary">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                Lưu thay đổi
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

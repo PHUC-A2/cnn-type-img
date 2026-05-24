@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CNN Vision Platform{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        aurora: {
+                            primary: '#0F172A',
+                            secondary: '#14B8A6',
+                            accent: '#EC4899',
+                            highlight: '#8B5CF6',
+                            neon: '#22D3EE',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <style>[x-cloak]{display:none!important}</style>
+    <script defer src="{% static 'js/form-validation.js' %}"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-[#F8FAFC] text-[#0F172A]">
+
+{% block body %}
+<div class="app-shell">
+    <div class="flex min-h-screen p-3 lg:p-4 gap-4">
+        {% if request.user.is_authenticated %}
+            {% include 'base/partials/sidebar.html' %}
+        {% endif %}
+
+        <div class="flex-1 flex flex-col min-w-0 gap-4">
+            {% if request.user.is_authenticated %}
+                {% include 'base/partials/topbar.html' %}
+            {% endif %}
+
+            <main class="flex-1 px-1 lg:px-2 pb-4">
+                {% include 'base/partials/messages.html' %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<script src="{% static 'js/app.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

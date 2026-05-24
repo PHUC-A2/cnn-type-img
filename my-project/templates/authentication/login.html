@@ -1,0 +1,50 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Đăng nhập — Vision CNN{% endblock %}
+
+{% block body %}
+<div class="app-shell min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="inline-flex w-16 h-16 rounded-2xl aurora-logo items-center justify-center mb-5">
+                <i data-lucide="brain" class="w-8 h-8 text-white"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-[#0F172A] tracking-tight">Đăng nhập</h1>
+            <p class="text-[#94A3B8] mt-1.5">Nền tảng phân loại ảnh AI</p>
+        </div>
+
+        <div class="aurora-auth-card">
+            {% include 'base/partials/messages.html' %}
+
+            <form method="post" novalidate class="space-y-5"
+                  x-data="auroraForm('login', '{{ form.errors.as_json|escapejs }}')"
+                  @submit="if (!validateAll()) $event.preventDefault()">
+                {% csrf_token %}
+
+                {% include 'base/partials/form_field_text.html' with field=form.username %}
+
+                {% include 'base/partials/form_field_password.html' with field=form.password %}
+
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="remember_me" id="id_remember_me"
+                           class="aurora-checkbox" data-field="remember_me"
+                           {% if form.remember_me.value %}checked{% endif %}>
+                    <label for="id_remember_me" class="text-sm text-[#475569] cursor-pointer">
+                        Ghi nhớ đăng nhập
+                    </label>
+                </div>
+
+                <button type="submit" class="aurora-btn aurora-btn-primary w-full py-3">
+                    <i data-lucide="log-in" class="w-4 h-4"></i>
+                    Đăng nhập
+                </button>
+            </form>
+
+            <p class="text-center text-sm text-[#94A3B8] mt-6">
+                Chưa có tài khoản?
+                <a href="{% url 'authentication:register' %}" class="aurora-link">Đăng ký</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

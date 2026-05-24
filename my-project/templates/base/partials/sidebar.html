@@ -1,0 +1,82 @@
+<aside
+    class="hidden lg:flex flex-col w-[260px] aurora-sidebar fixed left-4 top-4 bottom-4 z-30"
+    x-data="{ mobileOpen: false }"
+>
+    <!-- Logo -->
+    <div class="p-5 border-b border-[#E2E8F0]/80">
+        <a href="{% url 'authentication:dashboard' %}" class="flex items-center gap-3 group">
+            <div class="w-11 h-11 rounded-2xl aurora-logo flex items-center justify-center transition-transform group-hover:scale-105">
+                <i data-lucide="brain" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+                <p class="font-bold text-sm leading-tight text-[#0F172A]">Vision CNN</p>
+                <p class="text-xs text-[#94A3B8]">Nền tảng AI</p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+        <p class="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Không gian làm việc</p>
+
+        <a href="{% url 'authentication:dashboard' %}"
+           class="nav-item {% if active_nav == 'dashboard' %}nav-item-active{% endif %}">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+            <span>Bảng điều khiển</span>
+        </a>
+        <a href="#" class="nav-item nav-item-disabled">
+            <i data-lucide="database" class="w-5 h-5"></i>
+            <span>Bộ dữ liệu</span>
+            <span class="aurora-badge ml-auto">G2</span>
+        </a>
+        <a href="#" class="nav-item nav-item-disabled">
+            <i data-lucide="cpu" class="w-5 h-5"></i>
+            <span>Huấn luyện</span>
+            <span class="aurora-badge ml-auto">G3</span>
+        </a>
+        <a href="#" class="nav-item nav-item-disabled">
+            <i data-lucide="scan-eye" class="w-5 h-5"></i>
+            <span>Phân loại</span>
+            <span class="aurora-badge ml-auto">G5</span>
+        </a>
+        <a href="#" class="nav-item nav-item-disabled">
+            <i data-lucide="chart-line" class="w-5 h-5"></i>
+            <span>Phân tích</span>
+            <span class="aurora-badge ml-auto">G7</span>
+        </a>
+
+        {% if request.user.is_admin %}
+        <div class="pt-4 mt-3 border-t border-[#E2E8F0]/80">
+            <p class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]">Quản trị</p>
+            <a href="#" class="nav-item nav-item-disabled">
+                <i data-lucide="shield" class="w-5 h-5"></i>
+                <span>Bảng quản trị</span>
+                <span class="aurora-badge ml-auto">G8</span>
+            </a>
+        </div>
+        {% endif %}
+    </nav>
+
+    <!-- User profile footer -->
+    <div class="p-3 border-t border-[#E2E8F0]/80">
+        <a href="{% url 'authentication:profile' %}"
+           class="flex items-center gap-3 p-2.5 rounded-xl hover:bg-[#F8FAFC] transition-all duration-150">
+            {% if request.user.avatar_url %}
+                <img src="{{ request.user.avatar_url }}" alt="Ảnh đại diện"
+                     class="w-10 h-10 rounded-full object-cover aurora-avatar-ring">
+            {% else %}
+                <div class="w-10 h-10 rounded-full icon-bg-teal flex items-center justify-center">
+                    <i data-lucide="user" class="w-5 h-5"></i>
+                </div>
+            {% endif %}
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold truncate text-[#0F172A]">{{ request.user.get_display_name }}</p>
+                <p class="text-xs text-[#94A3B8] truncate">{{ request.user.get_role_display }}</p>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-[#94A3B8]"></i>
+        </a>
+    </div>
+</aside>
+
+<!-- Spacer cho sidebar fixed -->
+<div class="hidden lg:block w-[276px] flex-shrink-0"></div>
