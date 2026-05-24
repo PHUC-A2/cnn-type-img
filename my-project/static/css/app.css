@@ -1,0 +1,20 @@
+/* CSS cơ bản — sẽ thay bằng Tailwind CSS ở phase sau */
+
+body {
+    margin: 0;
+    font-family: Inter, system-ui, sans-serif;
+    background-color: #f9fafb;
+    color: #111827;
+}
+
+.hello-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.hello-container h1 {
+    font-size: 2rem;
+    font-weight: 600;
+}

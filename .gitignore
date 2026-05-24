@@ -1,0 +1,38 @@
+# Tài liệu nội bộ — không push lên repo
+/docs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+my-project/.venv/
+
+# Django
+my-project/db.sqlite3
+my-project/staticfiles/
+my-project/media/
+my-project/logs/
+my-project/trained_models/
+
+# Biến môi trường — giữ .env.example
+my-project/.env
+
+# Log
+*.log
+
+# IDE / Editor
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
