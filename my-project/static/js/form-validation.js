@@ -57,6 +57,23 @@ document.addEventListener('alpine:init', () => {
                 return '';
             },
         },
+        dataset_upload: {
+            dataset_name: (v) => {
+                if (!v.trim()) return 'Vui lòng nhập tên bộ dữ liệu.';
+                if (v.trim().length < 3) return 'Tên bộ dữ liệu phải có ít nhất 3 ký tự.';
+                return '';
+            },
+            description: () => '',
+            zip_file: (file, all, maxMb = 500) => {
+                if (!file) return 'Vui lòng chọn file ZIP.';
+                if (!file.name.toLowerCase().endsWith('.zip')) return 'Chỉ chấp nhận file ZIP.';
+                const limit = (window.DATASET_MAX_ZIP_MB || maxMb) * 1024 * 1024;
+                if (file.size > limit) {
+                    return `File ZIP không được vượt quá ${window.DATASET_MAX_ZIP_MB || maxMb}MB.`;
+                }
+                return '';
+            },
+        },
     };
 
     Alpine.data('auroraForm', (formType, serverErrorsJson = '{}') => ({
@@ -65,6 +82,9 @@ document.addEventListener('alpine:init', () => {
         touched: {},
         success: {},
         submitted: false,
+        dragOver: false,
+        fileName: '',
+        uploading: false,
 
         init() {
             try {
@@ -135,6 +155,7 @@ document.addEventListener('alpine:init', () => {
             const rules = RULES[this.formType];
             if (!rules || !rules[name]) return;
             const file = event.target.files[0] || null;
+            if (file) this.fileName = file.name;
             const error = rules[name](file);
             if (error) {
                 this.errors[name] = error;
@@ -145,7 +166,33 @@ document.addEventListener('alpine:init', () => {
             } else {
                 delete this.errors[name];
                 delete this.success[name];
+                this.fileName = '';
             }
+        },
+
+        handleDrop(event) {
+            this.dragOver = false;
+            const file = event.dataTransfer.files[0];
+            if (!file || !this.$refs.zipInput) return;
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            this.$refs.zipInput.files = dt.files;
+            this.onFileChange('zip_file', { target: this.$refs.zipInput });
+        },
+
+        uploadZoneClass() {
+            if (this.showError('zip_file')) return 'upload-zone upload-zone-error';
+            if (this.success['zip_file']) return 'upload-zone upload-zone-success';
+            if (this.dragOver) return 'upload-zone upload-zone-drag';
+            return 'upload-zone';
+        },
+
+        onSubmitForm(event) {
+            if (!this.validateAll()) {
+                event.preventDefault();
+                return;
+            }
+            this.uploading = true;
         },
 
         validateAll() {

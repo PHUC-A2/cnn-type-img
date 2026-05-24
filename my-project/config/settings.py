@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.messages',
     'apps.authentication',
+    'apps.datasets',
     'core',
 ]
 
@@ -118,3 +119,6 @@ INIT_ADMIN_USERNAME = os.getenv('INIT_ADMIN_USERNAME', 'admin')
 INIT_ADMIN_EMAIL = os.getenv('INIT_ADMIN_EMAIL', 'admin@gmail.com')
 INIT_ADMIN_PASSWORD = os.getenv('INIT_ADMIN_PASSWORD', 'admin123')
 INIT_ADMIN_FULL_NAME = os.getenv('INIT_ADMIN_FULL_NAME', 'Quản trị viên')
+
+# Dataset upload
+DATASET_MAX_ZIP_MB = int(os.getenv('DATASET_MAX_ZIP_MB', '500'))

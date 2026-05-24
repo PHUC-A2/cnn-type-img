@@ -6,6 +6,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path('', include('apps.authentication.urls')),
+    path('', include('apps.datasets.urls')),
 ]
 
 if settings.DEBUG:

@@ -24,10 +24,10 @@
             <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
             <span>Bảng điều khiển</span>
         </a>
-        <a href="#" class="nav-item nav-item-disabled">
+        <a href="{% url 'datasets:list' %}"
+           class="nav-item {% if active_nav == 'datasets' %}nav-item-active{% endif %}">
             <i data-lucide="database" class="w-5 h-5"></i>
             <span>Bộ dữ liệu</span>
-            <span class="aurora-badge ml-auto">G2</span>
         </a>
         <a href="#" class="nav-item nav-item-disabled">
             <i data-lucide="cpu" class="w-5 h-5"></i>

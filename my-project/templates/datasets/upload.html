@@ -1,0 +1,72 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Tải lên bộ dữ liệu — Vision CNN{% endblock %}
+{% block page_heading %}Tải lên bộ dữ liệu{% endblock %}
+
+{% block extra_head %}
+<script>window.DATASET_MAX_ZIP_MB = {{ max_zip_mb }};</script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="aurora-card p-6">
+        <div class="mb-6">
+            <h2 class="text-lg font-bold text-[#0F172A]">Tải lên file ZIP</h2>
+            <p class="text-sm text-[#94A3B8] mt-1">
+                Cấu trúc: mỗi thư mục con là một class, chứa ảnh bên trong (tối thiểu 2 class).
+            </p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" novalidate class="space-y-5"
+              x-data="auroraForm('dataset_upload', '{{ form.errors.as_json|escapejs }}')"
+              @submit="onSubmitForm($event)">
+            {% csrf_token %}
+
+            {% include 'base/partials/form_field_text.html' with field=form.dataset_name %}
+
+            <div>
+                <label class="aurora-label" for="id_description">{{ form.description.label }}</label>
+                <textarea name="description" id="id_description" rows="3"
+                          placeholder="Mô tả ngắn về bộ dữ liệu (tùy chọn)"
+                          data-field="description"
+                          :class="fieldClass('description')"
+                          @input="onInput('description')"
+                          @blur="onBlur('description')">{{ form.description.value|default:'' }}</textarea>
+                <p x-show="showError('description')" x-cloak class="field-error-msg" x-text="errors['description']"></p>
+            </div>
+
+            <div>
+                <label class="aurora-label">File ZIP</label>
+                <div :class="uploadZoneClass()"
+                     @click="$refs.zipInput.click()"
+                     @dragover.prevent="dragOver = true"
+                     @dragleave.prevent="dragOver = false"
+                     @drop.prevent="handleDrop($event)">
+                    <input type="file" name="zip_file" id="id_zip_file" x-ref="zipInput"
+                           class="hidden" data-field="zip_file"
+                           @change="onFileChange('zip_file', $event)">
+                    <div class="flex flex-col items-center gap-3 pointer-events-none">
+                        <div class="w-14 h-14 rounded-2xl icon-bg-teal flex items-center justify-center">
+                            <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-[#0F172A]">Kéo thả file ZIP vào đây</p>
+                            <p class="text-sm text-[#94A3B8] mt-1">hoặc bấm để chọn file (tối đa {{ max_zip_mb }}MB)</p>
+                        </div>
+                        <p x-show="fileName" x-cloak class="text-sm font-medium text-[#0D9488]" x-text="fileName"></p>
+                    </div>
+                </div>
+                <p x-show="showError('zip_file')" x-cloak class="field-error-msg" x-text="errors['zip_file']"></p>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button type="submit" class="aurora-btn aurora-btn-primary" :disabled="uploading">
+                    <i data-lucide="upload" class="w-4 h-4"></i>
+                    <span x-text="uploading ? 'Đang xử lý...' : 'Tải lên'"></span>
+                </button>
+                <a href="{% url 'datasets:list' %}" class="aurora-btn aurora-btn-secondary">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

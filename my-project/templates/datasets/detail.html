@@ -1,0 +1,92 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ dataset.dataset_name }} — Vision CNN{% endblock %}
+{% block page_heading %}{{ dataset.dataset_name }}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Tổng ảnh</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">{{ dataset.total_images }}</p>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Số class</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">{{ dataset.total_classes }}</p>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Tập huấn luyện</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#10B981]">{{ split.train }}</p>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Tập kiểm tra</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#8B5CF6]">{{ split.val }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-6">
+    <div class="xl:col-span-2 aurora-card p-6">
+        <h2 class="text-lg font-bold text-[#0F172A] mb-4">Phân bố class</h2>
+        <div class="space-y-4">
+            {% for item in class_stats %}
+            <div>
+                <div class="flex items-center justify-between text-sm mb-1.5">
+                    <span class="font-semibold text-[#0F172A]">{{ item.obj.class_name }}</span>
+                    <span class="text-[#94A3B8]">{{ item.obj.total_images }} ảnh</span>
+                </div>
+                <div class="class-bar-track">
+                    <div class="class-bar-fill" style="width: {{ item.percent }}%"></div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-sm text-[#94A3B8]">Chưa có class nào.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="aurora-card p-6">
+        <h2 class="text-lg font-bold text-[#0F172A] mb-4">Thông tin</h2>
+        <dl class="space-y-3 text-sm">
+            {% if dataset.description %}
+            <div>
+                <dt class="text-[#94A3B8]">Mô tả</dt>
+                <dd class="text-[#475569] mt-0.5">{{ dataset.description }}</dd>
+            </div>
+            {% endif %}
+            <div>
+                <dt class="text-[#94A3B8]">Slug</dt>
+                <dd class="text-[#475569] mt-0.5 font-mono text-xs">{{ dataset.dataset_slug }}</dd>
+            </div>
+            <div>
+                <dt class="text-[#94A3B8]">Người tạo</dt>
+                <dd class="text-[#475569] mt-0.5">{{ dataset.created_by.get_display_name }}</dd>
+            </div>
+            <div>
+                <dt class="text-[#94A3B8]">Ngày tạo</dt>
+                <dd class="text-[#475569] mt-0.5">{{ dataset.created_at|date:"d/m/Y H:i" }}</dd>
+            </div>
+        </dl>
+        <a href="{% url 'datasets:list' %}" class="aurora-btn aurora-btn-secondary w-full mt-6">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Quay lại danh sách
+        </a>
+    </div>
+</div>
+
+<div class="aurora-card p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-[#0F172A]">Xem trước ảnh</h2>
+        <span class="text-sm text-[#94A3B8]">Hiển thị {{ samples|length }} / {{ dataset.total_images }}</span>
+    </div>
+    {% if samples %}
+    <div class="dataset-preview-grid">
+        {% for image in samples %}
+        <div class="dataset-preview-item" title="{{ image.dataset_class.class_name }}">
+            <img src="{{ image.image_url }}" alt="{{ image.image_name }}" loading="lazy">
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-[#94A3B8]">Chưa có ảnh preview.</p>
+    {% endif %}
+</div>
+{% endblock %}

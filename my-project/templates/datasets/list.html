@@ -1,0 +1,54 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Bộ dữ liệu — Vision CNN{% endblock %}
+{% block page_heading %}Bộ dữ liệu{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <p class="text-sm text-[#475569]">Quản lý bộ dữ liệu huấn luyện CNN</p>
+    <a href="{% url 'datasets:upload' %}" class="aurora-btn aurora-btn-primary">
+        <i data-lucide="upload" class="w-4 h-4"></i>
+        Tải lên
+    </a>
+</div>
+
+{% if datasets %}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+    {% for dataset in datasets %}
+    <a href="{% url 'datasets:detail' dataset.id %}" class="aurora-card p-5 block group">
+        <div class="flex items-start justify-between gap-3 mb-4">
+            <div class="w-12 h-12 rounded-2xl icon-bg-cyan flex items-center justify-center flex-shrink-0">
+                <i data-lucide="database" class="w-6 h-6"></i>
+            </div>
+            <span class="aurora-badge">{{ dataset.total_classes }} class</span>
+        </div>
+        <h3 class="font-bold text-[#0F172A] group-hover:text-[#0D9488] transition-colors">
+            {{ dataset.dataset_name }}
+        </h3>
+        {% if dataset.description %}
+        <p class="text-sm text-[#94A3B8] mt-1 line-clamp-2">{{ dataset.description }}</p>
+        {% endif %}
+        <div class="flex items-center gap-4 mt-4 pt-4 border-t border-[#E2E8F0] text-sm text-[#475569]">
+            <span class="flex items-center gap-1.5">
+                <i data-lucide="image" class="w-4 h-4 text-[#94A3B8]"></i>
+                {{ dataset.total_images }} ảnh
+            </span>
+            <span class="text-[#94A3B8]">{{ dataset.created_at|date:"d/m/Y" }}</span>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="w-14 h-14 rounded-2xl icon-bg-cyan flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="folder-open" class="w-7 h-7"></i>
+    </div>
+    <h3 class="font-bold text-[#0F172A] mb-2">Chưa có bộ dữ liệu</h3>
+    <p class="text-sm text-[#94A3B8] mb-5">Tải lên file ZIP chứa các thư mục class để bắt đầu huấn luyện.</p>
+    <a href="{% url 'datasets:upload' %}" class="aurora-btn aurora-btn-primary">
+        <i data-lucide="upload" class="w-4 h-4"></i>
+        Tải lên bộ dữ liệu
+    </a>
+</div>
+{% endif %}
+{% endblock %}

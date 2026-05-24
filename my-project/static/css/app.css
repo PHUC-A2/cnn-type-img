@@ -337,6 +337,79 @@ body {
     width: 100%;
 }
 
+.upload-zone {
+    border: 2px dashed #CBD5E1;
+    border-radius: 1.5rem;
+    background: white;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.upload-zone:hover,
+.upload-zone-drag {
+    border-color: #22D3EE;
+    background: rgba(236, 254, 255, 0.4);
+}
+
+.upload-zone-error {
+    border-color: #FCA5A5;
+    background: #FEF2F2;
+}
+
+.upload-zone-success {
+    border-color: #6EE7B7;
+    background: #ECFDF5;
+}
+
+.aurora-textarea {
+    resize: vertical;
+    min-height: 5rem;
+}
+
+.class-bar-track {
+    height: 0.5rem;
+    background: #F1F5F9;
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.class-bar-fill {
+    height: 100%;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #22D3EE, #14B8A6);
+    transition: width 0.3s ease;
+}
+
+.dataset-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+}
+
+.dataset-preview-item {
+    aspect-ratio: 1;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+}
+
+.dataset-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    border: 1px dashed #E2E8F0;
+    border-radius: 1.5rem;
+    background: white;
+}
+
 /* Auth card: trắng sạch, shadow nhẹ */
 .aurora-auth-card {
     background: white;
