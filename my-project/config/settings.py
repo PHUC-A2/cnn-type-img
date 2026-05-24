@@ -1,11 +1,12 @@
 """
 Cấu hình Django cho hệ thống CNN Image Classification.
-Đọc biến môi trường từ .env, sẵn sàng chuyển sang MySQL khi cần.
+Đọc biến môi trường từ .env, kết nối MySQL.
 """
 
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Thư mục gốc project (my-project/)
@@ -13,6 +14,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Nạp biến môi trường từ file .env
 load_dotenv(BASE_DIR / '.env')
+
+
+def env_required(name: str) -> str:
+    """Lấy biến môi trường bắt buộc — thiếu trong .env thì dừng khởi động."""
+    if name not in os.environ:
+        raise ImproperlyConfigured(f'Biến môi trường {name} chưa được cấu hình trong .env')
+    return os.environ[name]
 
 # Khóa bảo mật — bắt buộc đổi khi deploy production
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
@@ -26,24 +34,16 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
-# Danh sách app đã cài
+# Danh sách app — không dùng DB mặc định của Django (auth/admin/sessions)
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -58,8 +58,6 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
             ],
         },
     },
@@ -67,37 +65,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database — mặc định SQLite, chuyển MySQL qua DB_ENGINE=mysql trong .env
-DB_ENGINE = os.getenv('DB_ENGINE', 'sqlite')
-
-if DB_ENGINE == 'mysql':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': os.getenv('DB_NAME', 'cnn_system'),
-            'USER': os.getenv('DB_USER', 'root'),
-            'PASSWORD': os.getenv('DB_PASSWORD', ''),
-            'HOST': os.getenv('DB_HOST', '127.0.0.1'),
-            'PORT': os.getenv('DB_PORT', '3306'),
-            'OPTIONS': {
-                'charset': 'utf8mb4',
-            },
-        }
+# Database — MySQL, toàn bộ cấu hình lấy từ .env
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': env_required('DB_NAME'),
+        'USER': env_required('DB_USER'),
+        'PASSWORD': env_required('DB_PASSWORD'),
+        'HOST': env_required('DB_HOST'),
+        'PORT': env_required('DB_PORT'),
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
-
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
+}
 
 LANGUAGE_CODE = 'vi'
 TIME_ZONE = 'Asia/Ho_Chi_Minh'
