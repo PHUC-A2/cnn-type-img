@@ -9,4 +9,7 @@ document.body.addEventListener('htmx:afterSwap', () => {
     if (window.lucide) {
         lucide.createIcons();
     }
+    if (window.initTrainingCharts) {
+        window.initTrainingCharts();
+    }
 });

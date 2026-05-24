@@ -8,40 +8,55 @@ document.addEventListener('alpine:init', () => {
     const ALLOWED_IMAGE_EXT = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
     const MAX_AVATAR_MB = 5;
 
+    /** Chuẩn hóa giá trị input — tránh lỗi khi field chưa có trong DOM hoặc value null. */
+    const asString = (v) => (v == null ? '' : String(v));
+
+    /** Parse số — hỗ trợ dấu phẩy thập phân (vi-VN). */
+    const parseNumber = (v) => {
+        const s = asString(v).trim().replace(',', '.');
+        if (!s) return NaN;
+        return Number(s);
+    };
+
     const RULES = {
         register: {
             username: (v) => {
-                if (!v.trim()) return 'Vui lòng nhập tên đăng nhập.';
-                if (v.trim().length < 3) return 'Tên đăng nhập phải có ít nhất 3 ký tự.';
-                if (!USERNAME_REGEX.test(v.trim())) return 'Tên đăng nhập chỉ được dùng chữ, số và dấu gạch dưới.';
+                const s = asString(v).trim();
+                if (!s) return 'Vui lòng nhập tên đăng nhập.';
+                if (s.length < 3) return 'Tên đăng nhập phải có ít nhất 3 ký tự.';
+                if (!USERNAME_REGEX.test(s)) return 'Tên đăng nhập chỉ được dùng chữ, số và dấu gạch dưới.';
                 return '';
             },
             email: (v) => {
-                if (!v.trim()) return 'Vui lòng nhập email.';
-                if (!EMAIL_REGEX.test(v.trim())) return 'Email không hợp lệ.';
+                const s = asString(v).trim();
+                if (!s) return 'Vui lòng nhập email.';
+                if (!EMAIL_REGEX.test(s)) return 'Email không hợp lệ.';
                 return '';
             },
             full_name: () => '',
             password: (v) => {
-                if (!v) return 'Vui lòng nhập mật khẩu.';
-                if (v.length < 6) return 'Mật khẩu phải có ít nhất 6 ký tự.';
+                const s = asString(v);
+                if (!s) return 'Vui lòng nhập mật khẩu.';
+                if (s.length < 6) return 'Mật khẩu phải có ít nhất 6 ký tự.';
                 return '';
             },
             password_confirm: (v, all) => {
-                if (!v) return 'Vui lòng xác nhận mật khẩu.';
-                if (v !== all.password) return 'Mật khẩu xác nhận không khớp.';
+                const s = asString(v);
+                if (!s) return 'Vui lòng xác nhận mật khẩu.';
+                if (s !== asString(all.password)) return 'Mật khẩu xác nhận không khớp.';
                 return '';
             },
         },
         login: {
-            username: (v) => (!v.trim() ? 'Vui lòng nhập tên đăng nhập hoặc email.' : ''),
-            password: (v) => (!v ? 'Vui lòng nhập mật khẩu.' : ''),
+            username: (v) => (!asString(v).trim() ? 'Vui lòng nhập tên đăng nhập hoặc email.' : ''),
+            password: (v) => (!asString(v) ? 'Vui lòng nhập mật khẩu.' : ''),
         },
         profile: {
             full_name: () => '',
             email: (v) => {
-                if (!v.trim()) return 'Vui lòng nhập email.';
-                if (!EMAIL_REGEX.test(v.trim())) return 'Email không hợp lệ.';
+                const s = asString(v).trim();
+                if (!s) return 'Vui lòng nhập email.';
+                if (!EMAIL_REGEX.test(s)) return 'Email không hợp lệ.';
                 return '';
             },
             avatar: (file) => {
@@ -59,8 +74,9 @@ document.addEventListener('alpine:init', () => {
         },
         dataset_upload: {
             dataset_name: (v) => {
-                if (!v.trim()) return 'Vui lòng nhập tên bộ dữ liệu.';
-                if (v.trim().length < 3) return 'Tên bộ dữ liệu phải có ít nhất 3 ký tự.';
+                const s = asString(v).trim();
+                if (!s) return 'Vui lòng nhập tên bộ dữ liệu.';
+                if (s.length < 3) return 'Tên bộ dữ liệu phải có ít nhất 3 ký tự.';
                 return '';
             },
             description: () => '',
@@ -74,9 +90,56 @@ document.addEventListener('alpine:init', () => {
                 return '';
             },
         },
+        training_config: {
+            model_name: (v) => {
+                const s = asString(v).trim();
+                if (!s) return 'Vui lòng nhập tên mô hình.';
+                if (s.length < 3) return 'Tên mô hình phải có ít nhất 3 ký tự.';
+                return '';
+            },
+            dataset_id: (v) => (!asString(v).trim() ? 'Vui lòng chọn bộ dữ liệu.' : ''),
+            description: () => '',
+            epochs: (v) => {
+                const s = asString(v).trim();
+                const n = parseNumber(s);
+                if (!s || Number.isNaN(n)) return 'Vui lòng nhập số epoch.';
+                if (n < 1 || n > 100) return 'Số epoch phải từ 1 đến 100.';
+                return '';
+            },
+            batch_size: (v) => {
+                const s = asString(v).trim();
+                const n = parseNumber(s);
+                if (!s || Number.isNaN(n)) return 'Vui lòng nhập batch size.';
+                if (n < 4 || n > 128) return 'Batch size phải từ 4 đến 128.';
+                return '';
+            },
+            input_width: (v) => {
+                const s = asString(v).trim();
+                const n = parseNumber(s);
+                if (!s || Number.isNaN(n)) return 'Vui lòng nhập chiều rộng.';
+                if (n < 32 || n > 512) return 'Chiều rộng phải từ 32 đến 512 px.';
+                return '';
+            },
+            input_height: (v) => {
+                const s = asString(v).trim();
+                const n = parseNumber(s);
+                if (!s || Number.isNaN(n)) return 'Vui lòng nhập chiều cao.';
+                if (n < 32 || n > 512) return 'Chiều cao phải từ 32 đến 512 px.';
+                return '';
+            },
+            learning_rate: (v) => {
+                const s = asString(v).trim();
+                const n = parseNumber(s);
+                if (!s || Number.isNaN(n)) return 'Vui lòng nhập learning rate.';
+                if (n <= 0 || n > 1) return 'Learning rate phải lớn hơn 0 và nhỏ hơn 1.';
+                return '';
+            },
+            optimizer: () => '',
+            loss_function: () => '',
+        },
     };
 
-    Alpine.data('auroraForm', (formType, serverErrorsJson = '{}') => ({
+    Alpine.data('auroraForm', (formType) => ({
         formType,
         errors: {},
         touched: {},
@@ -87,6 +150,14 @@ document.addEventListener('alpine:init', () => {
         uploading: false,
 
         init() {
+            let serverErrorsJson = '{}';
+            const errorsId = this.$el.dataset.errorsId;
+            if (errorsId) {
+                const node = document.getElementById(errorsId);
+                if (node && node.textContent) {
+                    serverErrorsJson = node.textContent;
+                }
+            }
             try {
                 const serverErrors = JSON.parse(serverErrorsJson || '{}');
                 Object.keys(serverErrors).forEach((key) => {
@@ -107,17 +178,28 @@ document.addEventListener('alpine:init', () => {
 
         getValues() {
             const values = {};
-            this.$el.querySelectorAll('[data-field]').forEach((el) => {
+            const root = this.$el.querySelector('form') || this.$el;
+            root.querySelectorAll('[data-field]').forEach((el) => {
                 const name = el.dataset.field;
+                if (!name) return;
                 if (el.type === 'file') {
                     values[name] = el.files[0] || null;
                 } else if (el.type === 'checkbox') {
                     values[name] = el.checked;
                 } else {
-                    values[name] = el.value;
+                    values[name] = el.value ?? '';
                 }
             });
             return values;
+        },
+
+        getFieldValue(name) {
+            const root = this.$el.querySelector('form') || this.$el;
+            const el = root.querySelector(`[data-field="${name}"]`);
+            if (!el) return '';
+            if (el.type === 'file') return el.files[0] || null;
+            if (el.type === 'checkbox') return el.checked;
+            return el.value ?? '';
         },
 
         validateField(name) {
@@ -125,15 +207,21 @@ document.addEventListener('alpine:init', () => {
             if (!rules || !rules[name]) return;
 
             const values = this.getValues();
-            const value = values[name];
-            const error = rules[name](value, values);
+            const value = values[name] !== undefined ? values[name] : this.getFieldValue(name);
+
+            let error = '';
+            try {
+                error = rules[name](value, values) || '';
+            } catch (e) {
+                error = 'Giá trị không hợp lệ.';
+            }
 
             if (error) {
                 this.errors[name] = error;
                 delete this.success[name];
             } else if (this.touched[name] || this.submitted) {
                 delete this.errors[name];
-                if (name !== 'remember_me' && name !== 'full_name') {
+                if (name !== 'remember_me' && name !== 'full_name' && name !== 'description') {
                     this.success[name] = true;
                 }
             }
@@ -141,13 +229,28 @@ document.addEventListener('alpine:init', () => {
 
         onInput(name) {
             this.touched[name] = true;
+            if (name === 'learning_rate') {
+                this._normalizeLearningRateInput();
+            }
             this.validateField(name);
             if (name === 'password') this.validateField('password_confirm');
         },
 
         onBlur(name) {
             this.touched[name] = true;
+            if (name === 'learning_rate') {
+                this._normalizeLearningRateInput();
+            }
             this.validateField(name);
+        },
+
+        _normalizeLearningRateInput() {
+            const el = (this.$el.querySelector('form') || this.$el).querySelector('[data-field="learning_rate"]');
+            if (!el) return;
+            const normalized = asString(el.value).trim().replace(',', '.');
+            if (normalized !== el.value) {
+                el.value = normalized;
+            }
         },
 
         onFileChange(name, event) {
@@ -188,11 +291,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         onSubmitForm(event) {
-            if (!this.validateAll()) {
-                event.preventDefault();
-                return;
-            }
-            this.uploading = true;
+            this.handleFormSubmit(event);
         },
 
         validateAll() {
@@ -207,6 +306,28 @@ document.addEventListener('alpine:init', () => {
                 if (this.errors[name]) valid = false;
             });
             return valid;
+        },
+
+        hasErrors() {
+            return Object.keys(this.errors).length > 0;
+        },
+
+        handleFormSubmit(event) {
+            if (!this.validateAll()) {
+                event.preventDefault();
+                this.$nextTick(() => {
+                    const firstError = this.$el.querySelector('.field-error, .field-error-msg');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    if (window.lucide) lucide.createIcons();
+                });
+                return;
+            }
+            if (this.formType === 'dataset_upload') {
+                this.uploading = true;
+            }
+            /* Hợp lệ — để form submit tự nhiên */
         },
 
         fieldClass(name) {

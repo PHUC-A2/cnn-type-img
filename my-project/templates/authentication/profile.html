@@ -22,8 +22,8 @@
         </div>
 
         <form method="post" enctype="multipart/form-data" novalidate class="space-y-5"
-              x-data="auroraForm('profile', '{{ form.errors.as_json|escapejs }}')"
-              @submit="if (!validateAll()) $event.preventDefault()">
+              x-data="auroraForm('profile')" data-errors-id="profile-form-errors"
+              @submit="handleFormSubmit($event)">
             {% csrf_token %}
 
             {% include 'base/partials/form_field_text.html' with field=form.full_name %}
@@ -43,6 +43,7 @@
                 Lưu thay đổi
             </button>
         </form>
+        {{ form.errors.as_json|json_script:"profile-form-errors" }}
     </div>
 </div>
 {% endblock %}

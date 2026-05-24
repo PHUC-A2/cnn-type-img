@@ -29,10 +29,10 @@
             <i data-lucide="database" class="w-5 h-5"></i>
             <span>Bộ dữ liệu</span>
         </a>
-        <a href="#" class="nav-item nav-item-disabled">
+        <a href="{% url 'training:list' %}"
+           class="nav-item {% if active_nav == 'training' %}nav-item-active{% endif %}">
             <i data-lucide="cpu" class="w-5 h-5"></i>
             <span>Huấn luyện</span>
-            <span class="aurora-badge ml-auto">G3</span>
         </a>
         <a href="#" class="nav-item nav-item-disabled">
             <i data-lucide="scan-eye" class="w-5 h-5"></i>

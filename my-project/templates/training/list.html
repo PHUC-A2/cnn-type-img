@@ -1,0 +1,137 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Huấn luyện — Vision CNN{% endblock %}
+{% block page_heading %}Huấn luyện mô hình{% endblock %}
+
+{% block content %}
+{% include 'training/partials/config_guide.html' %}
+
+<div class="grid grid-cols-1 xl:grid-cols-5 gap-5">
+    <div class="xl:col-span-2 aurora-card p-6">
+        <h2 class="text-lg font-bold text-[#0F172A] mb-1">Cấu hình huấn luyện</h2>
+        <p class="text-sm text-[#94A3B8] mb-5">Chọn bộ dữ liệu và tham số CNN</p>
+
+        <div x-data="auroraForm('training_config')" data-errors-id="training-form-errors">
+            <div x-show="submitted && hasErrors()" x-cloak class="aurora-alert aurora-alert-error items-start !items-start mb-4">
+                <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                <p class="text-sm">Vui lòng kiểm tra lại các trường được đánh dấu đỏ trước khi huấn luyện.</p>
+            </div>
+
+            <form method="post" novalidate class="space-y-4" @submit="handleFormSubmit($event)">
+                {% csrf_token %}
+
+                <div>
+                    <label class="aurora-label" for="id_model_name">{{ form.model_name.label }}</label>
+                    <input type="text" name="model_name" id="id_model_name"
+                           value="{{ form.model_name.value|default:'' }}"
+                           placeholder="Ví dụ: CNN-Cho-Meo-v1"
+                           data-field="model_name"
+                           :class="fieldClass('model_name')"
+                           @input="onInput('model_name')" @blur="onBlur('model_name')">
+                    <p x-show="showError('model_name')" x-cloak class="field-error-msg" x-text="errors['model_name']"></p>
+                </div>
+
+                <div>
+                    <label class="aurora-label" for="id_dataset_id">{{ form.dataset_id.label }}</label>
+                    <select name="dataset_id" id="id_dataset_id" data-field="dataset_id"
+                            :class="fieldClass('dataset_id')"
+                            @change="onInput('dataset_id')" @blur="onBlur('dataset_id')">
+                        {% for val, label in form.dataset_id.field.choices %}
+                        <option value="{{ val }}" {% if form.dataset_id.value|stringformat:'s' == val|stringformat:'s' %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <p x-show="showError('dataset_id')" x-cloak class="field-error-msg" x-text="errors['dataset_id']"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="aurora-label" for="id_epochs">{{ form.epochs.label }}</label>
+                        <input type="text" name="epochs" id="id_epochs" inputmode="numeric"
+                               value="{{ form.epochs.value|default:'10' }}"
+                               data-field="epochs" :class="fieldClass('epochs')"
+                               @input="onInput('epochs')" @blur="onBlur('epochs')">
+                        <p x-show="showError('epochs')" x-cloak class="field-error-msg" x-text="errors['epochs']"></p>
+                    </div>
+                    <div>
+                        <label class="aurora-label" for="id_batch_size">{{ form.batch_size.label }}</label>
+                        <input type="text" name="batch_size" id="id_batch_size" inputmode="numeric"
+                               value="{{ form.batch_size.value|default:'16' }}"
+                               data-field="batch_size" :class="fieldClass('batch_size')"
+                               @input="onInput('batch_size')" @blur="onBlur('batch_size')">
+                        <p x-show="showError('batch_size')" x-cloak class="field-error-msg" x-text="errors['batch_size']"></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="aurora-label" for="id_input_width">{{ form.input_width.label }}</label>
+                        <input type="text" name="input_width" id="id_input_width" inputmode="numeric"
+                               value="{{ form.input_width.value|default:'128' }}"
+                               data-field="input_width" :class="fieldClass('input_width')"
+                               @input="onInput('input_width')" @blur="onBlur('input_width')">
+                        <p x-show="showError('input_width')" x-cloak class="field-error-msg" x-text="errors['input_width']"></p>
+                    </div>
+                    <div>
+                        <label class="aurora-label" for="id_input_height">{{ form.input_height.label }}</label>
+                        <input type="text" name="input_height" id="id_input_height" inputmode="numeric"
+                               value="{{ form.input_height.value|default:'128' }}"
+                               data-field="input_height" :class="fieldClass('input_height')"
+                               @input="onInput('input_height')" @blur="onBlur('input_height')">
+                        <p x-show="showError('input_height')" x-cloak class="field-error-msg" x-text="errors['input_height']"></p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="aurora-label" for="id_learning_rate">{{ form.learning_rate.label }}</label>
+                    <input type="text" name="learning_rate" id="id_learning_rate" inputmode="decimal"
+                           value="{{ form.learning_rate.value|default:'0.001' }}"
+                           placeholder="0.001"
+                           data-field="learning_rate" :class="fieldClass('learning_rate')"
+                           @input="onInput('learning_rate')" @blur="onBlur('learning_rate')">
+                    <p x-show="showError('learning_rate')" x-cloak class="field-error-msg" x-text="errors['learning_rate']"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="aurora-label" for="id_optimizer">{{ form.optimizer.label }}</label>
+                        {{ form.optimizer }}
+                    </div>
+                    <div>
+                        <label class="aurora-label" for="id_loss_function">{{ form.loss_function.label }}</label>
+                        {{ form.loss_function }}
+                    </div>
+                </div>
+
+                <button type="submit" class="aurora-btn aurora-btn-accent w-full py-3">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                    Bắt đầu huấn luyện
+                </button>
+            </form>
+            {{ form.errors.as_json|json_script:"training-form-errors" }}
+        </div>
+    </div>
+
+    <div class="xl:col-span-3 aurora-card p-6">
+        <h2 class="text-lg font-bold text-[#0F172A] mb-4">Lịch sử huấn luyện</h2>
+        {% if jobs %}
+        <div class="space-y-3">
+            {% for job in jobs %}
+            <a href="{% url 'training:detail' job.id %}" class="block p-4 rounded-xl border border-[#E2E8F0] hover:bg-[#F8FAFC] transition-colors">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <p class="font-semibold text-[#0F172A]">{{ job.model.model_name }}</p>
+                        <p class="text-xs text-[#94A3B8] mt-0.5">{{ job.dataset.dataset_name }} · {{ job.get_status_display_vi }}</p>
+                    </div>
+                    <span class="aurora-badge">{{ job.epochs }} epoch</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state py-8">
+            <p class="text-sm text-[#94A3B8]">Chưa có job huấn luyện nào.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

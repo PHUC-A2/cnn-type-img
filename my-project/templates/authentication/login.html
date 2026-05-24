@@ -17,8 +17,8 @@
             {% include 'base/partials/messages.html' %}
 
             <form method="post" novalidate class="space-y-5"
-                  x-data="auroraForm('login', '{{ form.errors.as_json|escapejs }}')"
-                  @submit="if (!validateAll()) $event.preventDefault()">
+                  x-data="auroraForm('login')" data-errors-id="login-form-errors"
+                  @submit="handleFormSubmit($event)">
                 {% csrf_token %}
 
                 {% include 'base/partials/form_field_text.html' with field=form.username %}
@@ -39,6 +39,7 @@
                     Đăng nhập
                 </button>
             </form>
+            {{ form.errors.as_json|json_script:"login-form-errors" }}
 
             <p class="text-center text-sm text-[#94A3B8] mt-6">
                 Chưa có tài khoản?

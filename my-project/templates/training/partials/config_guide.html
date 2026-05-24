@@ -1,0 +1,90 @@
+{# Alert hướng dẫn cấu hình huấn luyện CNN #}
+<div class="mb-5 space-y-3" x-data="{ openGuide: true }">
+    {% if training_simulation_mode %}
+    <div class="aurora-alert aurora-alert-error items-start !items-start">
+        <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+        <div>
+            <p class="font-semibold">Đang chạy chế độ mô phỏng</p>
+            <p class="text-sm mt-1 opacity-90">
+                Hệ thống chưa dùng TensorFlow thật. Cài <strong>tensorflow</strong> và đặt
+                <strong>TRAINING_SIMULATION_MODE=False</strong> trong .env để huấn luyện CNN thực tế.
+            </p>
+        </div>
+    </div>
+    {% else %}
+    <div class="aurora-alert aurora-alert-success items-start !items-start">
+        <i data-lucide="check-circle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+        <div>
+            <p class="font-semibold">Huấn luyện CNN thật (TensorFlow/Keras)</p>
+            <p class="text-sm mt-1 opacity-90">
+                Mô hình sẽ được huấn luyện thực tế và lưu file <strong>.h5</strong> vào thư mục
+                <strong>trained_models/</strong>.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="aurora-alert aurora-alert-info items-start !items-start !flex-col !gap-3">
+        <div class="flex w-full items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+                <i data-lucide="lightbulb" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                <div>
+                    <p class="font-semibold">Gợi ý cấu hình huấn luyện đúng</p>
+                    <p class="text-sm mt-1 opacity-90">
+                        Tham khảo các tham số khuyến nghị trước khi bắt đầu job mới.
+                    </p>
+                </div>
+            </div>
+            <button type="button"
+                    class="text-xs font-semibold whitespace-nowrap hover:underline flex-shrink-0"
+                    @click="openGuide = !openGuide"
+                    x-text="openGuide ? 'Thu gọn' : 'Mở rộng'"></button>
+        </div>
+
+        <div x-show="openGuide" x-cloak class="w-full pl-8 text-sm space-y-3 text-[#0F766E]">
+            <ul class="space-y-2 list-disc list-inside marker:text-[#14B8A6]">
+                <li>
+                    <strong>Bộ dữ liệu:</strong> Chọn dataset có ít nhất <strong>2 class</strong> và
+                    <strong>4 ảnh</strong> trở lên. Càng nhiều ảnh/class thì độ chính xác thường càng cao.
+                </li>
+                <li>
+                    <strong>Tên mô hình:</strong> Đặt theo dataset + phiên bản, ví dụ
+                    <em>CNN-Cho-Meo-v1</em> — dễ quản lý khi có nhiều lần huấn luyện.
+                </li>
+                <li>
+                    <strong>Kích thước ảnh:</strong> Mặc định <strong>128×128 px</strong> phù hợp hầu hết
+                    trường hợp. Dùng <strong>224×224</strong> nếu ảnh chi tiết cao (thời gian train lâu hơn).
+                </li>
+                <li>
+                    <strong>Số epoch:</strong> Bắt đầu với <strong>10–20</strong>. Tăng dần nếu val accuracy
+                    chưa ổn định (tối đa 100). Hệ thống có early stopping khi val loss không cải thiện.
+                </li>
+                <li>
+                    <strong>Batch size:</strong> Khuyến nghị <strong>16</strong>. Giảm xuống <strong>8</strong>
+                    nếu máy yếu hoặc bị thiếu RAM; tăng <strong>32</strong> khi dataset lớn và cấu hình mạnh.
+                </li>
+                <li>
+                    <strong>Learning rate:</strong> Giữ <strong>0.001</strong> với Adam. Nếu loss dao động
+                    mạnh, thử giảm xuống <strong>0.0001</strong>.
+                </li>
+                <li>
+                    <strong>Optimizer:</strong> Chọn <strong>Adam</strong> cho lần train đầu. Dùng
+                    <strong>SGD</strong> hoặc <strong>RMSprop</strong> khi cần thử nghiệm thêm.
+                </li>
+            </ul>
+
+            <div class="rounded-xl bg-white/60 border border-[#99F6E4] px-4 py-3">
+                <p class="font-semibold mb-1">Cấu hình mẫu — bộ dữ liệu nhỏ (cho/mèo, &lt; 500 ảnh)</p>
+                <p class="text-xs leading-relaxed opacity-90">
+                    Epoch <strong>15</strong> · Batch <strong>16</strong> · Ảnh <strong>128×128</strong> ·
+                    Learning rate <strong>0.001</strong> · Optimizer <strong>Adam</strong>
+                </p>
+            </div>
+
+            <p class="text-xs opacity-80">
+                Sau khi bấm <strong>Bắt đầu huấn luyện</strong>, chuyển sang trang theo dõi để xem tiến độ,
+                biểu đồ accuracy/loss và nhật ký từng epoch (cập nhật realtime).
+            </p>
+        </div>
+    </div>
+</div>

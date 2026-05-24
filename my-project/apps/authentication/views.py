@@ -8,6 +8,8 @@ from apps.authentication.forms import LoginForm, ProfileForm, RegisterForm
 from apps.authentication.services.auth_service import AuthService
 from apps.authentication.services.avatar_storage_service import AvatarStorageService
 from apps.authentication.services.session_service import SessionService
+from apps.datasets.repositories.dataset_repository import DatasetRepository
+from apps.models_ai.repositories.cnn_model_repository import CnnModelRepository
 from core.permissions.decorators import login_required
 
 
@@ -77,6 +79,8 @@ def dashboard_view(request: HttpRequest) -> HttpResponse:
     context = {
         'page_title': 'Bảng điều khiển',
         'active_nav': 'dashboard',
+        'dataset_count': DatasetRepository.list_for_user(request.user).count(),
+        'model_count': CnnModelRepository.list_for_user(request.user).count(),
     }
     return render(request, 'dashboard/index.html', context)
 

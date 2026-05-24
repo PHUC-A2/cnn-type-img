@@ -1,0 +1,25 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Huấn luyện — {{ job.model.model_name }}{% endblock %}
+{% block page_heading %}{{ job.model.model_name }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4 flex items-center justify-between gap-3">
+    <div>
+        <p class="text-sm text-[#475569]">Bộ dữ liệu: <strong>{{ job.dataset.dataset_name }}</strong></p>
+        <p class="text-xs text-[#94A3B8] mt-0.5">{{ job.epochs }} epoch · batch {{ job.batch_size }} · {{ job.optimizer }}</p>
+    </div>
+    {% if is_running %}
+    <span class="aurora-badge inline-flex items-center gap-1.5 px-3 py-1.5">
+        <span class="w-2 h-2 rounded-full bg-[#14B8A6] animate-pulse"></span>
+        Đang xử lý
+    </span>
+    {% endif %}
+</div>
+
+{% include 'training/partials/status_panel.html' %}
+{% endblock %}

@@ -1,6 +1,5 @@
 """Test Phase 2 — Dataset management."""
 
-import base64
 import io
 import zipfile
 
@@ -16,11 +15,12 @@ from core.enums.user_role import UserRole
 
 
 def _make_image_bytes() -> bytes:
-    """Ảnh PNG 1x1 hợp lệ — không cần Pillow."""
-    return base64.b64decode(
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAppYD/AAAAF0lEQVR42mP8z8BQ'
-        'DwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
-    )
+    """Ảnh PNG 1x1 hợp lệ — tạo bằng Pillow để pass validation chặt."""
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new('RGB', (1, 1), color='red').save(buf, format='PNG')
+    return buf.getvalue()
 
 
 def _make_dataset_zip(classes=None, images_per_class=2) -> bytes:

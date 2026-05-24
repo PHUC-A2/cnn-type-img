@@ -1,6 +1,5 @@
-"""Validate cấu trúc dataset và ảnh — Pillow detect corrupt (fallback nếu thiếu Pillow)."""
+"""Validate cấu trúc dataset và ảnh — Pillow detect corrupt (fallback magic bytes nếu thiếu Pillow)."""
 
-import imghdr
 import struct
 from dataclasses import dataclass
 from pathlib import Path
@@ -123,6 +122,8 @@ class DatasetValidationService:
         ext = file_path.suffix.lower()
         if ext not in ALLOWED_IMAGE_EXTENSIONS:
             raise ValueError(f'Định dạng {ext} không được hỗ trợ.')
+        if file_path.stat().st_size == 0:
+            raise ValueError(f'Ảnh rỗng (0 byte): {file_path.name}')
 
         try:
             with Image.open(file_path) as img:
@@ -151,13 +152,13 @@ class DatasetValidationService:
         ext = file_path.suffix.lower()
         if ext not in ALLOWED_IMAGE_EXTENSIONS:
             raise ValueError(f'Định dạng {ext} không được hỗ trợ.')
+        if file_path.stat().st_size == 0:
+            raise ValueError(f'Ảnh rỗng (0 byte): {file_path.name}')
 
         with open(file_path, 'rb') as handle:
             header = handle.read(512)
 
-        kind = imghdr.what(None, header)
-        if not kind and ext in {'.jpg', '.jpeg'}:
-            kind = 'jpeg'
+        kind = DatasetValidationService._detect_image_kind(header, ext)
         if not kind:
             raise ValueError(f'Ảnh lỗi hoặc corrupt: {file_path.name}')
 
@@ -204,3 +205,18 @@ class DatasetValidationService:
                         handle.seek(length - 2, 1)
 
         return 0, 0, 3
+
+    @staticmethod
+    def _detect_image_kind(header: bytes, ext: str) -> str:
+        """Nhận diện định dạng ảnh qua magic bytes — thay imghdr (Python 3.13+)."""
+        if header.startswith(b'\x89PNG\r\n\x1a\n'):
+            return 'png'
+        if header[:3] == b'\xff\xd8\xff':
+            return 'jpeg'
+        if header[:6] in (b'GIF87a', b'GIF89a'):
+            return 'gif'
+        if header[:2] == b'BM':
+            return 'bmp'
+        if ext in {'.jpg', '.jpeg'}:
+            return 'jpeg'
+        return ''

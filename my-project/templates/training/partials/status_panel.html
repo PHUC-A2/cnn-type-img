@@ -1,0 +1,130 @@
+{% load static %}
+<div id="training-status-panel"
+     {% if is_running %}
+     hx-get="{% url 'training:status' job.id %}"
+     hx-trigger="every 2s"
+     hx-swap="outerHTML"
+     {% endif %}>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+        <div class="aurora-card p-5">
+            <p class="text-sm text-[#94A3B8]">Trạng thái</p>
+            <p class="text-lg font-bold mt-1 text-[#0F172A]">{{ job.get_status_display_vi }}</p>
+            <p class="text-xs text-[#94A3B8] mt-1">{{ job.status_message|default:'—' }}</p>
+        </div>
+        <div class="aurora-card p-5">
+            <p class="text-sm text-[#94A3B8]">Tiến độ</p>
+            <p class="text-2xl aurora-metric mt-1 text-[#14B8A6]">{{ progress }}%</p>
+            <div class="class-bar-track mt-3">
+                <div class="class-bar-fill" style="width: {{ progress }}%"></div>
+            </div>
+        </div>
+        <div class="aurora-card p-5">
+            <p class="text-sm text-[#94A3B8]">Accuracy (val)</p>
+            <p class="text-2xl aurora-metric mt-1 text-[#10B981]">
+                {% if job.validation_accuracy %}{{ job.validation_accuracy|floatformat:2 }}{% else %}—{% endif %}
+            </p>
+        </div>
+        <div class="aurora-card p-5">
+            <p class="text-sm text-[#94A3B8]">Loss (val)</p>
+            <p class="text-2xl aurora-metric mt-1 text-[#8B5CF6]">
+                {% if job.validation_loss %}{{ job.validation_loss|floatformat:4 }}{% else %}—{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6">
+        <div class="aurora-card p-5">
+            <h3 class="font-bold text-[#0F172A] mb-3">Biểu đồ Accuracy</h3>
+            <canvas id="accuracyChart" height="180"
+                    data-labels="{{ chart_labels|join:',' }}"
+                    data-train="{{ chart_train_acc|join:',' }}"
+                    data-val="{{ chart_val_acc|join:',' }}"></canvas>
+        </div>
+        <div class="aurora-card p-5">
+            <h3 class="font-bold text-[#0F172A] mb-3">Biểu đồ Loss</h3>
+            <canvas id="lossChart" height="180"
+                    data-labels="{{ chart_labels|join:',' }}"
+                    data-train="{{ chart_train_loss|join:',' }}"
+                    data-val="{{ chart_val_loss|join:',' }}"></canvas>
+        </div>
+    </div>
+
+    <div class="aurora-card p-6 mb-6">
+        <h3 class="font-bold text-[#0F172A] mb-4">Nhật ký epoch</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-[#94A3B8] border-b border-[#E2E8F0]">
+                        <th class="py-2 pr-4">Epoch</th>
+                        <th class="py-2 pr-4">Train Acc</th>
+                        <th class="py-2 pr-4">Val Acc</th>
+                        <th class="py-2 pr-4">Train Loss</th>
+                        <th class="py-2">Val Loss</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in history %}
+                    <tr class="border-b border-[#F1F5F9]">
+                        <td class="py-2 pr-4 font-semibold">{{ row.epoch_number }}</td>
+                        <td class="py-2 pr-4">{{ row.train_accuracy|floatformat:4 }}</td>
+                        <td class="py-2 pr-4">{{ row.validation_accuracy|floatformat:4 }}</td>
+                        <td class="py-2 pr-4">{{ row.train_loss|floatformat:4 }}</td>
+                        <td class="py-2">{{ row.validation_loss|floatformat:4 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="py-4 text-[#94A3B8]">Chưa có dữ liệu epoch.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if metrics %}
+    <div class="ai-highlight-block mb-6">
+        <h3 class="font-bold text-[#0F172A] mb-2">Metrics sau huấn luyện</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div><span class="text-[#94A3B8]">Accuracy</span><p class="font-semibold">{{ metrics.accuracy|floatformat:4 }}</p></div>
+            <div><span class="text-[#94A3B8]">Precision</span><p class="font-semibold">{{ metrics.precision_score|floatformat:4 }}</p></div>
+            <div><span class="text-[#94A3B8]">Recall</span><p class="font-semibold">{{ metrics.recall_score|floatformat:4 }}</p></div>
+            <div><span class="text-[#94A3B8]">F1 Score</span><p class="font-semibold">{{ metrics.f1_score|floatformat:4 }}</p></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <a href="{% url 'training:list' %}" class="aurora-btn aurora-btn-secondary">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+        Quay lại
+    </a>
+</div>
+
+<script>
+window.initTrainingCharts = function initTrainingCharts() {
+    if (!window.Chart) return;
+    document.querySelectorAll('#accuracyChart, #lossChart').forEach((canvas) => {
+        if (canvas.dataset.chartBound) return;
+        canvas.dataset.chartBound = '1';
+        const labels = (canvas.dataset.labels || '').split(',').filter(Boolean).map(Number);
+        const train = (canvas.dataset.train || '').split(',').filter(Boolean).map(Number);
+        const val = (canvas.dataset.val || '').split(',').filter(Boolean).map(Number);
+        const isAcc = canvas.id === 'accuracyChart';
+        new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    { label: isAcc ? 'Huấn luyện' : 'Loss train', data: train, borderColor: '#14B8A6', tension: 0.3 },
+                    { label: isAcc ? 'Kiểm tra' : 'Loss val', data: val, borderColor: '#8B5CF6', tension: 0.3 },
+                ],
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { boxWidth: 12 } } },
+                scales: { y: { grid: { color: '#F1F5F9' } }, x: { grid: { display: false } } },
+            },
+        });
+    });
+    if (window.lucide) lucide.createIcons();
+};
+window.initTrainingCharts();
+</script>

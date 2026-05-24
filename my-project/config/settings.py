@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'apps.authentication',
     'apps.datasets',
+    'apps.models_ai',
+    'apps.training',
     'core',
 ]
 
@@ -122,3 +124,15 @@ INIT_ADMIN_FULL_NAME = os.getenv('INIT_ADMIN_FULL_NAME', 'Quản trị viên')
 
 # Dataset upload
 DATASET_MAX_ZIP_MB = int(os.getenv('DATASET_MAX_ZIP_MB', '500'))
+
+# Model storage + training
+_model_root = os.getenv('MODEL_ROOT', '').strip()
+MODEL_ROOT = Path(_model_root) if _model_root else BASE_DIR / 'trained_models'
+MODEL_ROOT.mkdir(parents=True, exist_ok=True)
+TRAINING_SIMULATION_MODE = os.getenv('TRAINING_SIMULATION_MODE', '').lower() in ('1', 'true', 'yes')
+
+if not TRAINING_SIMULATION_MODE and DEBUG:
+    from core.ml.dependencies import check_tensorflow as _check_tf
+    _tf_available, _ = _check_tf()
+    if not _tf_available:
+        TRAINING_SIMULATION_MODE = True

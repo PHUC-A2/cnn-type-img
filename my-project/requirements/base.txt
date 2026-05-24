@@ -2,3 +2,8 @@ django>=4.2,<5.0
 python-dotenv>=1.0
 PyMySQL>=1.1
 Pillow>=10.0
+
+# Phase 3 — AI (Python Windows/Linux chuẩn, không dùng mingw)
+tensorflow>=2.15
+numpy>=1.24
+scikit-learn>=1.3

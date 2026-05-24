@@ -20,7 +20,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm text-[#94A3B8]">Bộ dữ liệu</p>
-                <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">—</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">{{ dataset_count }}</p>
             </div>
             <div class="w-11 h-11 rounded-2xl icon-bg-cyan flex items-center justify-center">
                 <i data-lucide="database" class="w-5 h-5"></i>
@@ -35,13 +35,15 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm text-[#94A3B8]">Mô hình CNN</p>
-                <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">—</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">{{ model_count }}</p>
             </div>
             <div class="w-11 h-11 rounded-2xl icon-bg-purple flex items-center justify-center">
                 <i data-lucide="brain" class="w-5 h-5"></i>
             </div>
         </div>
-        <p class="text-xs text-[#94A3B8] mt-3">Giai đoạn 3</p>
+        <a href="{% url 'training:list' %}" class="text-xs text-[#0D9488] mt-3 inline-block font-semibold hover:underline">
+            Huấn luyện mô hình →
+        </a>
     </div>
 
     <div class="aurora-card p-5">
@@ -68,8 +70,8 @@
                 Chào mừng, {{ request.user.get_display_name }}!
             </h2>
             <p class="text-[#475569] mt-2 text-sm leading-relaxed">
-                Không gian làm việc AI đã sẵn sàng. Các module bộ dữ liệu, huấn luyện và dự đoán
-                sẽ được kích hoạt ở giai đoạn tiếp theo.
+                Không gian làm việc AI đã sẵn sàng. Bạn có thể tải bộ dữ liệu, huấn luyện CNN
+                và theo dõi tiến trình realtime. Module dự đoán sẽ được kích hoạt ở giai đoạn 5.
             </p>
             {% if request.user.is_admin %}
             <div class="aurora-alert aurora-alert-info mt-4 mb-0">
