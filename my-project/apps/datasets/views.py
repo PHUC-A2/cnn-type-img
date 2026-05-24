@@ -1,5 +1,6 @@
 """Views quản lý bộ dữ liệu Phase 2."""
 
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
@@ -9,7 +10,19 @@ from apps.datasets.repositories.dataset_class_repository import DatasetClassRepo
 from apps.datasets.repositories.dataset_image_repository import DatasetImageRepository
 from apps.datasets.repositories.dataset_repository import DatasetRepository
 from apps.datasets.services.dataset_upload_service import DatasetUploadService
+from apps.datasets.validators import ALLOWED_IMAGE_EXTENSIONS, MIN_CLASSES, MIN_IMAGES_PER_CLASS
 from core.permissions.decorators import login_required
+
+
+def _dataset_guide_context() -> dict:
+    """Context dùng chung cho alert hướng dẫn ZIP trên trang datasets."""
+    ext_list = sorted(ext.lstrip('.').upper() for ext in ALLOWED_IMAGE_EXTENSIONS)
+    return {
+        'max_zip_mb': settings.DATASET_MAX_ZIP_MB,
+        'min_classes': MIN_CLASSES,
+        'min_images_per_class': MIN_IMAGES_PER_CLASS,
+        'allowed_image_ext_display': ', '.join(ext_list),
+    }
 
 
 @login_required
@@ -20,6 +33,7 @@ def dataset_list_view(request: HttpRequest) -> HttpResponse:
         'page_title': 'Bộ dữ liệu',
         'active_nav': 'datasets',
         'datasets': datasets,
+        **_dataset_guide_context(),
     }
     return render(request, 'datasets/list.html', context)
 
@@ -41,12 +55,11 @@ def dataset_upload_view(request: HttpRequest) -> HttpResponse:
             return redirect('datasets:detail', dataset_id=result.dataset.id)
         messages.error(request, result.message)
 
-    from django.conf import settings
     context = {
         'page_title': 'Tải lên bộ dữ liệu',
         'active_nav': 'datasets',
         'form': form,
-        'max_zip_mb': settings.DATASET_MAX_ZIP_MB,
+        **_dataset_guide_context(),
     }
     return render(request, 'datasets/upload.html', context)
 

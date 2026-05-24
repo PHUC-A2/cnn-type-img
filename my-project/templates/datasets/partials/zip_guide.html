@@ -1,0 +1,88 @@
+{# Alert hướng dẫn tải file ZIP và cấu trúc thư mục class bên trong #}
+<div class="mb-5 space-y-3" x-data="{ openGuide: true }">
+    <div class="aurora-alert aurora-alert-info items-start !items-start !flex-col !gap-3">
+        <div class="flex w-full items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+                <i data-lucide="folder-archive" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                <div>
+                    <p class="font-semibold">Hướng dẫn tải bộ dữ liệu đúng định dạng</p>
+                    <p class="text-sm mt-1 opacity-90">
+                        Chỉ chấp nhận file <strong>.zip</strong> có cấu trúc thư mục theo class trước khi huấn luyện CNN.
+                    </p>
+                </div>
+            </div>
+            <button type="button"
+                    class="text-xs font-semibold whitespace-nowrap hover:underline flex-shrink-0"
+                    @click="openGuide = !openGuide"
+                    x-text="openGuide ? 'Thu gọn' : 'Mở rộng'"></button>
+        </div>
+
+        <div x-show="openGuide" x-cloak class="w-full pl-8 text-sm space-y-4 text-[#0F766E]">
+            <ul class="space-y-2 list-disc list-inside marker:text-[#14B8A6]">
+                <li>
+                    <strong>Định dạng file:</strong> Chỉ upload file <strong>ZIP</strong> (tối đa
+                    <strong>{{ max_zip_mb }}MB</strong>). Không dùng RAR, 7z hay thư mục nén lồng nhau phức tạp.
+                </li>
+                <li>
+                    <strong>Cấu trúc bắt buộc:</strong> Mỗi thư mục con trực tiếp là một <strong>class</strong>
+                    (nhãn), bên trong chứa ảnh. Cần ít nhất <strong>{{ min_classes }} class</strong> và mỗi class
+                    có tối thiểu <strong>{{ min_images_per_class }} ảnh</strong> hợp lệ.
+                </li>
+                <li>
+                    <strong>Định dạng ảnh:</strong> {{ allowed_image_ext_display }}.
+                    Ảnh corrupt hoặc 0 byte sẽ bị bỏ qua / báo lỗi khi xử lý.
+                </li>
+                <li>
+                    <strong>Đặt tên class:</strong> Dùng tên thư mục rõ nghĩa (ví dụ <em>cho</em>, <em>meo</em>).
+                    Tên thư mục sẽ trở thành nhãn phân loại khi huấn luyện.
+                </li>
+                <li>
+                    <strong>Thư mục bọc ngoài:</strong> Nếu ZIP có một thư mục gốc duy nhất
+                    (ví dụ <em>cho-va-meo/cho/...</em>), hệ thống vẫn tự nhận diện được.
+                </li>
+                <li>
+                    <strong>Khuyến nghị:</strong> Mỗi class nên có từ <strong>4 ảnh trở lên</strong> (càng nhiều càng tốt)
+                    để mô hình CNN học ổn định hơn.
+                </li>
+            </ul>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div class="rounded-xl bg-white/60 border border-[#99F6E4] px-4 py-3">
+                    <p class="font-semibold mb-2 flex items-center gap-1.5 text-[#059669]">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        Cấu trúc đúng
+                    </p>
+                    <pre class="text-xs leading-relaxed opacity-90 font-mono whitespace-pre-wrap">cho-va-meo.zip
+├── cho/
+│   ├── cho_001.jpg
+│   ├── cho_002.jpg
+│   └── cho_003.png
+└── meo/
+    ├── meo_001.jpg
+    └── meo_002.jpg</pre>
+                </div>
+
+                <div class="rounded-xl bg-white/60 border border-[#FECACA] px-4 py-3">
+                    <p class="font-semibold mb-2 flex items-center gap-1.5 text-[#DC2626]">
+                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                        Cấu trúc sai (thường gặp)
+                    </p>
+                    <ul class="text-xs leading-relaxed opacity-90 space-y-1.5 list-disc list-inside">
+                        <li>Ảnh nằm trực tiếp trong ZIP, không có thư mục class</li>
+                        <li>Chỉ có <strong>1 class</strong> — không đủ để phân loại</li>
+                        <li>Thư mục class rỗng hoặc chỉ chứa file .txt / .pdf</li>
+                        <li>Nén cả thư mục cha lẫn nhiều tầng không có ảnh ở tầng class</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="rounded-xl bg-white/60 border border-[#99F6E4] px-4 py-3">
+                <p class="font-semibold mb-1">Quy trình nhanh</p>
+                <p class="text-xs leading-relaxed opacity-90">
+                    (1) Chuẩn bị thư mục trên máy → (2) Mỗi class một folder riêng →
+                    (3) Nén thành <strong>.zip</strong> → (4) Bấm <strong>Tải lên</strong> và đặt tên bộ dữ liệu.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

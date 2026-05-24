@@ -4,6 +4,8 @@
 {% block page_heading %}Bộ dữ liệu{% endblock %}
 
 {% block content %}
+{% include 'datasets/partials/zip_guide.html' %}
+
 <div class="flex items-center justify-between mb-6">
     <p class="text-sm text-[#475569]">Quản lý bộ dữ liệu huấn luyện CNN</p>
     <a href="{% url 'datasets:upload' %}" class="aurora-btn aurora-btn-primary">

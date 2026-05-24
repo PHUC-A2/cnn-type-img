@@ -103,11 +103,14 @@ class DatasetViewTest(TestCase):
         response = self.client.get(reverse('datasets:list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Bộ dữ liệu')
+        self.assertContains(response, 'Hướng dẫn tải bộ dữ liệu đúng định dạng')
+        self.assertContains(response, 'Cấu trúc đúng')
 
     def test_upload_page(self):
         response = self.client.get(reverse('datasets:upload'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Tải lên file ZIP')
+        self.assertContains(response, 'Hướng dẫn tải bộ dữ liệu đúng định dạng')
 
     def test_upload_flow_redirects_to_detail(self):
         zip_content = _make_dataset_zip()
