@@ -588,6 +588,53 @@ body {
     background: white;
 }
 
+.aurora-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.aurora-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+}
+
+.aurora-modal-wrap {
+    width: 100%;
+    max-width: 42rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+}
+
+.aurora-modal-panel {
+    background: white;
+    border-radius: 1.25rem;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+    padding: 1.25rem;
+}
+
+.aurora-modal-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.75rem;
+    color: #64748B;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.aurora-modal-close:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+}
+
 /* Auth card: trắng sạch, shadow nhẹ */
 .aurora-auth-card {
     background: white;

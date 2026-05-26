@@ -79,6 +79,13 @@
             <i data-lucide="scan-eye" class="w-5 h-5 flex-shrink-0"></i>
             <span class="nav-label truncate">Phân loại</span>
         </a>
+        <a href="{% url 'predictions:history' %}"
+           class="nav-item {% if active_nav == 'history' %}nav-item-active{% endif %}"
+           title="Lịch sử phân loại"
+           @click="closeMobile()">
+            <i data-lucide="history" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="nav-label truncate">Lịch sử</span>
+        </a>
         <a href="#" class="nav-item nav-item-disabled" title="Phân tích">
             <i data-lucide="chart-line" class="w-5 h-5 flex-shrink-0"></i>
             <span class="nav-label truncate">Phân tích</span>

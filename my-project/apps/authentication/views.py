@@ -10,6 +10,7 @@ from apps.authentication.services.avatar_storage_service import AvatarStorageSer
 from apps.authentication.services.session_service import SessionService
 from apps.datasets.repositories.dataset_repository import DatasetRepository
 from apps.models_ai.repositories.cnn_model_repository import CnnModelRepository
+from apps.predictions.repositories.prediction_repository import PredictionRepository
 from core.permissions.decorators import login_required
 
 
@@ -81,6 +82,7 @@ def dashboard_view(request: HttpRequest) -> HttpResponse:
         'active_nav': 'dashboard',
         'dataset_count': DatasetRepository.list_for_user(request.user).count(),
         'model_count': CnnModelRepository.list_for_user(request.user).count(),
+        'prediction_count': PredictionRepository.list_for_user(request.user).count(),
     }
     return render(request, 'dashboard/index.html', context)
 

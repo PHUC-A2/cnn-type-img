@@ -81,3 +81,62 @@ class PredictForm(forms.Form):
         if self.user and not self.fields['model_id'].choices:
             raise forms.ValidationError('Chưa có mô hình sẵn sàng để phân loại. Hãy huấn luyện trước.')
         return cleaned
+
+
+class HistoryFilterForm(forms.Form):
+    """Form lọc lịch sử phân loại — submit bằng GET."""
+
+    q = forms.CharField(
+        required=False,
+        label='Tìm kiếm',
+        widget=forms.TextInput(attrs={
+            'class': 'aurora-input',
+            'placeholder': 'Nhãn, tên ảnh, tên model...',
+        }),
+    )
+    model_id = forms.ChoiceField(
+        required=False,
+        label='Mô hình',
+        choices=[],
+        widget=forms.Select(attrs={'class': 'aurora-input'}),
+    )
+    user_id = forms.ChoiceField(
+        required=False,
+        label='Người dùng',
+        choices=[],
+        widget=forms.Select(attrs={'class': 'aurora-input'}),
+    )
+    date_from = forms.DateField(
+        required=False,
+        label='Từ ngày',
+        widget=forms.DateInput(attrs={'class': 'aurora-input', 'type': 'date'}),
+    )
+    date_to = forms.DateField(
+        required=False,
+        label='Đến ngày',
+        widget=forms.DateInput(attrs={'class': 'aurora-input', 'type': 'date'}),
+    )
+
+    def __init__(self, *args, user: User | None = None, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+        from apps.predictions.services.prediction_history_service import PredictionHistoryService
+
+        model_choices = [('', '— Tất cả model —')]
+        if user:
+            model_choices += [
+                (str(mid), name)
+                for mid, name in PredictionHistoryService.get_model_filter_options(user)
+            ]
+        self.fields['model_id'].choices = model_choices
+
+        if user and user.is_admin:
+            user_choices = [('', '— Tất cả người dùng —')]
+            user_choices += [
+                (str(uid), name)
+                for uid, name in PredictionHistoryService.get_user_filter_options(user)
+            ]
+            self.fields['user_id'].choices = user_choices
+        else:
+            del self.fields['user_id']

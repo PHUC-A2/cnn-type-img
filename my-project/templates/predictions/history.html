@@ -1,0 +1,137 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Lịch sử phân loại — Vision CNN{% endblock %}
+{% block page_heading %}Lịch sử phân loại{% endblock %}
+
+{% block content %}
+<div x-data="{ modalOpen: false }"
+     @keydown.escape.window="modalOpen = false"
+     @htmx:after-swap.window="if ($event.detail.target.id === 'history-modal-body') { modalOpen = true; $nextTick(() => { if (window.lucide) lucide.createIcons(); }) }">
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+        <p class="text-sm text-[#475569]">Theo dõi mọi lần phân loại ảnh — lọc theo model, thời gian{% if request.user.is_admin %}, người dùng{% endif %}.</p>
+        <a href="{% url 'predictions:predict' %}" class="aurora-btn aurora-btn-primary">
+            <i data-lucide="scan-eye" class="w-4 h-4"></i>
+            Phân loại mới
+        </a>
+    </div>
+
+    <div class="aurora-card p-5 mb-5">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-end">
+            <div class="md:col-span-2 xl:col-span-1">
+                <label class="aurora-label" for="id_q">{{ filter_form.q.label }}</label>
+                {{ filter_form.q }}
+            </div>
+            <div>
+                <label class="aurora-label" for="id_model_id">{{ filter_form.model_id.label }}</label>
+                {{ filter_form.model_id }}
+            </div>
+            {% if request.user.is_admin %}
+            <div>
+                <label class="aurora-label" for="id_user_id">{{ filter_form.user_id.label }}</label>
+                {{ filter_form.user_id }}
+            </div>
+            {% endif %}
+            <div>
+                <label class="aurora-label" for="id_date_from">{{ filter_form.date_from.label }}</label>
+                {{ filter_form.date_from }}
+            </div>
+            <div>
+                <label class="aurora-label" for="id_date_to">{{ filter_form.date_to.label }}</label>
+                {{ filter_form.date_to }}
+            </div>
+            <div class="flex gap-2 md:col-span-2 xl:col-span-1">
+                <button type="submit" class="aurora-btn aurora-btn-primary">
+                    <i data-lucide="filter" class="w-4 h-4"></i>
+                    Lọc
+                </button>
+                <a href="{% url 'predictions:history' %}" class="aurora-btn aurora-btn-secondary">Xóa lọc</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="aurora-card overflow-hidden">
+        <div class="px-5 py-4 border-b border-[#E2E8F0] flex items-center justify-between">
+            <h2 class="font-bold text-[#0F172A]">Bản ghi phân loại</h2>
+            <span class="text-sm text-[#94A3B8]">{{ history.total_count }} kết quả</span>
+        </div>
+
+        {% if history.items %}
+        <div class="overflow-x-auto">
+            <table class="aurora-table w-full text-sm">
+                <thead>
+                    <tr class="text-left text-[#94A3B8] border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                        <th class="px-5 py-3 font-semibold">Ảnh</th>
+                        <th class="px-5 py-3 font-semibold">Nhãn</th>
+                        <th class="px-5 py-3 font-semibold">Độ tin cậy</th>
+                        <th class="px-5 py-3 font-semibold">Mô hình</th>
+                        {% if request.user.is_admin %}
+                        <th class="px-5 py-3 font-semibold">Người dùng</th>
+                        {% endif %}
+                        <th class="px-5 py-3 font-semibold">Thời gian</th>
+                        <th class="px-5 py-3 font-semibold text-right">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[#E2E8F0]">
+                    {% for row in history.items %}
+                    <tr class="hover:bg-[#F8FAFC] cursor-pointer transition-colors"
+                        hx-get="{% url 'predictions:history_detail' row.id %}"
+                        hx-target="#history-modal-body"
+                        hx-swap="innerHTML">
+                        <td class="px-5 py-3">
+                            <img src="{{ row.image_url }}" alt="{{ row.image_name }}"
+                                 class="w-12 h-12 rounded-lg object-cover border border-[#E2E8F0]">
+                        </td>
+                        <td class="px-5 py-3 font-semibold text-[#7C3AED]">{{ row.predicted_class }}</td>
+                        <td class="px-5 py-3 text-[#059669] font-medium">{{ row.confidence_score|floatformat:4 }}</td>
+                        <td class="px-5 py-3 text-[#475569]">{{ row.model.model_name }}</td>
+                        {% if request.user.is_admin %}
+                        <td class="px-5 py-3 text-[#475569]">{{ row.predicted_by.get_display_name }}</td>
+                        {% endif %}
+                        <td class="px-5 py-3 text-[#94A3B8] whitespace-nowrap">{{ row.created_at|date:"d/m/Y H:i" }}</td>
+                        <td class="px-5 py-3 text-right">
+                            <span class="text-xs font-semibold text-[#0D9488]">Xem →</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if history.total_pages > 1 %}
+        <div class="px-5 py-4 border-t border-[#E2E8F0] flex items-center justify-between gap-3">
+            <p class="text-sm text-[#94A3B8]">Trang {{ history.page }} / {{ history.total_pages }}</p>
+            <div class="flex gap-2">
+                {% if history.has_prev %}
+                <a href="?{{ prev_page_qs }}" class="aurora-btn aurora-btn-secondary !py-1.5 !px-3 text-xs">Trước</a>
+                {% endif %}
+                {% if history.has_next %}
+                <a href="?{{ next_page_qs }}" class="aurora-btn aurora-btn-secondary !py-1.5 !px-3 text-xs">Sau</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="empty-state border-0 rounded-none">
+            <div class="w-14 h-14 rounded-2xl icon-bg-pink flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="history" class="w-7 h-7"></i>
+            </div>
+            <h3 class="font-bold text-[#0F172A] mb-2">Chưa có lịch sử phân loại</h3>
+            <p class="text-sm text-[#94A3B8] mb-5">Thực hiện phân loại ảnh đầu tiên để xem lịch sử tại đây.</p>
+            <a href="{% url 'predictions:predict' %}" class="aurora-btn aurora-btn-primary">
+                <i data-lucide="scan-eye" class="w-4 h-4"></i>
+                Phân loại ảnh
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    {# Modal chi tiết — HTMX load nội dung #}
+    <div x-show="modalOpen" x-cloak class="aurora-modal-backdrop" @click.self="modalOpen = false">
+        <div class="aurora-modal-wrap" @click.stop>
+            <div id="history-modal-body"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

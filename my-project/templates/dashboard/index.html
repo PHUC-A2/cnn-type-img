@@ -50,15 +50,20 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-sm text-[#94A3B8]">Dự đoán</p>
-                <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">—</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">{{ prediction_count }}</p>
             </div>
             <div class="w-11 h-11 rounded-2xl icon-bg-pink flex items-center justify-center">
                 <i data-lucide="scan-eye" class="w-5 h-5"></i>
             </div>
         </div>
-        <a href="{% url 'predictions:predict' %}" class="text-xs text-[#0D9488] mt-3 inline-block font-semibold hover:underline">
-            Phân loại ảnh →
-        </a>
+        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+            <a href="{% url 'predictions:predict' %}" class="text-xs text-[#0D9488] font-semibold hover:underline">
+                Phân loại ảnh →
+            </a>
+            <a href="{% url 'predictions:history' %}" class="text-xs text-[#0D9488] font-semibold hover:underline">
+                Lịch sử phân loại →
+            </a>
+        </div>
     </div>
 </div>
 
@@ -72,8 +77,8 @@
                 Chào mừng, {{ request.user.get_display_name }}!
             </h2>
             <p class="text-[#475569] mt-2 text-sm leading-relaxed">
-                Không gian làm việc AI đã sẵn sàng. Bạn có thể tải bộ dữ liệu, huấn luyện CNN
-                và theo dõi tiến trình realtime. Module dự đoán sẽ được kích hoạt ở giai đoạn 5.
+                Không gian làm việc AI đã sẵn sàng. Bạn có thể tải bộ dữ liệu, huấn luyện CNN,
+                phân loại ảnh và xem lại toàn bộ lịch sử dự đoán.
             </p>
             {% if request.user.is_admin %}
             <div class="aurora-alert aurora-alert-info mt-4 mb-0">

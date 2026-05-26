@@ -1,0 +1,77 @@
+{# Modal chi tiết prediction — load qua HTMX #}
+<div class="aurora-modal-panel">
+    <div class="flex items-start justify-between gap-3 mb-4">
+        <div>
+            <h3 class="text-lg font-bold text-[#0F172A]">Chi tiết phân loại</h3>
+            <p class="text-xs text-[#94A3B8] mt-0.5">#{{ prediction.id }} · {{ prediction.created_at|date:"d/m/Y H:i" }}</p>
+        </div>
+        <button type="button" class="aurora-modal-close" @click="modalOpen = false" aria-label="Đóng">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+            <img src="{{ prediction.image_url }}" alt="{{ prediction.image_name }}"
+                 class="w-full rounded-xl border border-[#E2E8F0] object-contain max-h-56 bg-[#F8FAFC]">
+            <p class="text-xs text-[#94A3B8] mt-2 truncate">{{ prediction.image_name }}</p>
+        </div>
+        <div class="space-y-3 text-sm">
+            <div>
+                <p class="text-[#94A3B8]">Nhãn dự đoán</p>
+                <p class="text-xl font-bold text-[#7C3AED]">{{ prediction.predicted_class }}</p>
+            </div>
+            <div>
+                <p class="text-[#94A3B8]">Độ tin cậy</p>
+                <p class="text-xl font-bold text-[#059669]">{{ prediction.confidence_score|floatformat:4 }}</p>
+            </div>
+            <div>
+                <p class="text-[#94A3B8]">Mô hình</p>
+                <p class="font-semibold text-[#0F172A]">{{ prediction.model.model_name }}</p>
+            </div>
+            {% if request.user.is_admin %}
+            <div>
+                <p class="text-[#94A3B8]">Người thực hiện</p>
+                <p class="font-semibold text-[#0F172A]">{{ prediction.predicted_by.get_display_name }}</p>
+            </div>
+            {% endif %}
+            {% if prediction.is_simulation %}
+            <span class="aurora-badge">Mô phỏng</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <p class="text-sm font-semibold text-[#0F172A] mb-3">Xác suất các class</p>
+        <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+            {% for row in probabilities %}
+            <div>
+                <div class="flex items-center justify-between text-xs mb-1">
+                    <span class="font-medium text-[#334155]">#{{ row.obj.rank_order }} · {{ row.obj.class_name }}</span>
+                    <span>{{ row.obj.probability|floatformat:4 }}</span>
+                </div>
+                <div class="class-bar-track">
+                    <div class="class-bar-fill bg-[#8B5CF6]" style="width: {{ row.percent }}%"></div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-xs text-[#94A3B8]">Không có dữ liệu xác suất.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if preprocess %}
+    <div class="text-xs text-[#64748B] mb-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] px-3 py-2">
+        Tiền xử lý: {{ preprocess.original_width }}×{{ preprocess.original_height }}
+        → {{ preprocess.target_width }}×{{ preprocess.target_height }} · RGB · normalize ×{{ preprocess.normalize_scale|floatformat:4 }}
+    </div>
+    {% endif %}
+
+    <div class="flex flex-wrap gap-2 pt-2 border-t border-[#E2E8F0]">
+        <a href="{% url 'predictions:result' prediction.id %}" class="aurora-btn aurora-btn-primary">
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+            Xem trang kết quả
+        </a>
+        <button type="button" class="aurora-btn aurora-btn-secondary" @click="modalOpen = false">Đóng</button>
+    </div>
+</div>

@@ -15,10 +15,16 @@
             {% if prediction.is_simulation %}· chế độ mô phỏng{% endif %}
         </p>
     </div>
-    <a href="{% url 'predictions:predict' %}" class="aurora-btn aurora-btn-secondary">
-        <i data-lucide="scan-eye" class="w-4 h-4"></i>
-        Phân loại ảnh khác
-    </a>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'predictions:predict' %}" class="aurora-btn aurora-btn-secondary">
+            <i data-lucide="scan-eye" class="w-4 h-4"></i>
+            Phân loại ảnh khác
+        </a>
+        <a href="{% url 'predictions:history' %}" class="aurora-btn aurora-btn-secondary">
+            <i data-lucide="history" class="w-4 h-4"></i>
+            Lịch sử
+        </a>
+    </div>
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-6">
