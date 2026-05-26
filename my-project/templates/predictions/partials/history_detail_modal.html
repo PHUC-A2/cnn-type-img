@@ -17,8 +17,13 @@
             <p class="text-xs text-[#94A3B8] mt-2 truncate">{{ prediction.image_name }}</p>
         </div>
         <div class="space-y-3 text-sm">
+            <div class="rounded-xl bg-[#F5F3FF] border border-[#DDD6FE] px-3 py-2.5">
+                <p class="text-xs font-semibold text-[#7C3AED] uppercase">Kết luận</p>
+                <p class="text-lg font-bold text-[#0F172A] mt-0.5">Ảnh là: {{ result_display.verdict_label }}</p>
+                <p class="text-xs text-[#64748B] mt-1">Nhóm {{ result_display.category_label }} · {{ result_display.confidence_percent }}% tin cậy</p>
+            </div>
             <div>
-                <p class="text-[#94A3B8]">Nhãn dự đoán</p>
+                <p class="text-[#94A3B8]">Nhãn class (dataset)</p>
                 <p class="text-xl font-bold text-[#7C3AED]">{{ prediction.predicted_class }}</p>
             </div>
             <div>

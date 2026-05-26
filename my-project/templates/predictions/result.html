@@ -27,6 +27,57 @@
     </div>
 </div>
 
+{# Kết luận phân loại — mô tả rõ ảnh là gì (con chó, con mèo, con người...) #}
+<div class="aurora-card p-6 mb-6 border border-[#DDD6FE] bg-gradient-to-r from-[#F5F3FF] to-[#FAFAFF]">
+    <div class="flex flex-col lg:flex-row lg:items-start gap-5">
+        <div class="flex-shrink-0 w-14 h-14 rounded-2xl bg-[#7C3AED] text-white flex items-center justify-center shadow-lg shadow-[#7C3AED]/20">
+            <i data-lucide="scan-search" class="w-7 h-7"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-xs font-semibold uppercase tracking-wide text-[#7C3AED]">Kết luận phân loại</p>
+            <h2 class="text-2xl sm:text-3xl font-bold text-[#0F172A] mt-1">
+                Ảnh trên là: <span class="text-[#7C3AED]">{{ result_display.verdict_label }}</span>
+            </h2>
+            <p class="text-sm text-[#475569] mt-2 leading-relaxed">
+                {{ result_display.summary_sentence }}
+            </p>
+            <div class="flex flex-wrap gap-2 mt-4">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#E2E8F0] text-sm font-medium text-[#334155]">
+                    <i data-lucide="tag" class="w-4 h-4 text-[#7C3AED]"></i>
+                    Class: {{ prediction.predicted_class }}
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#E2E8F0] text-sm font-medium text-[#334155]">
+                    <i data-lucide="layers" class="w-4 h-4 text-[#0D9488]"></i>
+                    Nhóm: {{ result_display.category_label }}
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-sm font-semibold text-[#059669]">
+                    <i data-lucide="badge-check" class="w-4 h-4"></i>
+                    Tin cậy: {{ result_display.confidence_percent }}%
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {% if result_display.alternatives %}
+    <div class="mt-5 pt-5 border-t border-[#DDD6FE]/80">
+        <p class="text-sm font-semibold text-[#0F172A] mb-3">So sánh với các class khác trong mô hình</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {% for alt in result_display.alternatives %}
+            <div class="flex items-start gap-2 rounded-xl px-3 py-2.5 text-sm
+                {% if alt.is_winner %}bg-[#EDE9FE] border border-[#C4B5FD]{% else %}bg-white/80 border border-[#E2E8F0]{% endif %}">
+                {% if alt.is_winner %}
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-[#7C3AED] flex-shrink-0 mt-0.5"></i>
+                {% else %}
+                <i data-lucide="x-circle" class="w-4 h-4 text-[#94A3B8] flex-shrink-0 mt-0.5"></i>
+                {% endif %}
+                <span class="text-[#334155]">{{ alt.comparison_text }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-6">
     <div class="aurora-card p-6 xl:col-span-1">
         <h2 class="text-lg font-bold text-[#0F172A] mb-4">Ảnh đầu vào</h2>

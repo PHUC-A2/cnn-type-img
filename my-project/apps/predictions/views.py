@@ -10,6 +10,7 @@ from django.shortcuts import redirect, render
 from apps.predictions.forms import HistoryFilterForm, PredictForm
 from apps.predictions.repositories.prediction_repository import PredictionRepository
 from apps.predictions.services.prediction_history_service import PredictionHistoryService
+from apps.predictions.services.prediction_display_service import PredictionDisplayService
 from apps.predictions.services.prediction_service import PredictionService
 from apps.predictions.services.prediction_storage_service import PredictionStorageService
 from core.permissions.decorators import login_required
@@ -70,12 +71,15 @@ def predict_result_view(request: HttpRequest, prediction_id: int) -> HttpRespons
         for row in probabilities
     ]
 
+    result_display = PredictionDisplayService.build_from_prediction(prediction, probabilities)
+
     context = {
         'page_title': 'Kết quả phân loại',
         'active_nav': 'predict',
         'prediction': prediction,
         'probabilities': probability_rows,
         'preprocess': preprocess,
+        'result_display': result_display,
         'chart_labels_json': json.dumps([row.class_name for row in probabilities]),
         'chart_values_json': json.dumps([float(row.probability) for row in probabilities]),
     }
@@ -131,9 +135,12 @@ def history_detail_partial(request: HttpRequest, prediction_id: int) -> HttpResp
     ]
     preprocess = getattr(prediction, 'preprocess_log', None)
 
+    result_display = PredictionDisplayService.build_from_prediction(prediction, probabilities)
+
     context = {
         'prediction': prediction,
         'probabilities': probability_rows,
         'preprocess': preprocess,
+        'result_display': result_display,
     }
     return render(request, 'predictions/partials/history_detail_modal.html', context)
