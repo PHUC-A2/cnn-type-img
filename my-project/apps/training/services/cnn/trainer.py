@@ -51,10 +51,27 @@ class CnnTrainerService:
             job.execution_time = round(time.time() - started, 2)
             job.finished_at = timezone.now()
             cls._update_job(job, TrainingStatus.COMPLETED, 'Huấn luyện hoàn thành.')
+            from apps.monitoring.services.system_log_service import SystemLogService
+            SystemLogService.info(
+                'training',
+                f'Huấn luyện hoàn thành job #{job.id} — {job.model.model_name}',
+                context={
+                    'job_id': job.id,
+                    'execution_time_s': job.execution_time,
+                    'validation_accuracy': job.validation_accuracy,
+                },
+            )
         except Exception as exc:
             job.execution_time = round(time.time() - started, 2)
             job.finished_at = timezone.now()
             cls._update_job(job, TrainingStatus.FAILED, cls._format_training_error(exc))
+            from apps.monitoring.services.system_log_service import SystemLogService
+            SystemLogService.error(
+                'training',
+                f'Huấn luyện thất bại job #{job.id}',
+                exc=exc,
+                context={'job_id': job.id},
+            )
         finally:
             DatasetPreprocessorService.cleanup(data_root)
             close_old_connections()

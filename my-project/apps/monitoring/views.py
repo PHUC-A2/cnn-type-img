@@ -7,6 +7,7 @@ from django.shortcuts import redirect, render
 from apps.authentication.repositories.user_repository import UserRepository
 from apps.monitoring.forms import (
     AdminDatasetForm,
+    AdminLogFilterForm,
     AdminModelForm,
     AdminPredictionFilterForm,
     AdminSearchForm,
@@ -15,6 +16,7 @@ from apps.monitoring.forms import (
     AdminUserEditForm,
 )
 from apps.monitoring.services.admin_dashboard_service import AdminDashboardService
+from apps.monitoring.services.admin_log_service import AdminLogService
 from apps.monitoring.services.admin_resource_service import AdminResourceService
 from apps.monitoring.services.admin_user_service import AdminUserService
 from core.permissions.decorators import admin_required
@@ -328,3 +330,43 @@ def admin_predictions_list_view(request: HttpRequest) -> HttpResponse:
         prev_page_qs=_build_page_query(request, result.page - 1) if result.has_prev else '',
     )
     return render(request, 'monitoring/predictions/list.html', context)
+
+
+@admin_required
+def admin_logs_view(request: HttpRequest) -> HttpResponse:
+    """Dashboard log — lỗi hệ thống + request chậm."""
+    from django.conf import settings
+
+    form = AdminLogFilterForm(request.GET or None, initial={'tab': 'system'})
+    tab = 'system'
+    level = ''
+    source = ''
+    path = ''
+    if form.is_valid():
+        tab = form.cleaned_data.get('tab') or 'system'
+        level = form.cleaned_data.get('level', '')
+        source = form.cleaned_data.get('source', '')
+        path = form.cleaned_data.get('path', '')
+
+    page = _parse_page(request)
+    stats = AdminLogService.build_stats()
+
+    if tab == 'slow':
+        page_result = AdminLogService.list_request_logs(slow_only=True, path=path, page=page)
+    elif tab == 'requests':
+        page_result = AdminLogService.list_request_logs(slow_only=False, path=path, page=page)
+    else:
+        page_result = AdminLogService.list_system_logs(level=level, source=source, page=page)
+
+    context = _admin_context(
+        request, 'logs',
+        form=form,
+        tab=tab,
+        stats=stats,
+        page_result=page_result,
+        slow_threshold_ms=getattr(settings, 'SLOW_REQUEST_THRESHOLD_MS', 1000),
+        query_string=_build_page_query(request),
+        next_page_qs=_build_page_query(request, page_result.page + 1) if page_result.has_next else '',
+        prev_page_qs=_build_page_query(request, page_result.page - 1) if page_result.has_prev else '',
+    )
+    return render(request, 'monitoring/logs/list.html', context)

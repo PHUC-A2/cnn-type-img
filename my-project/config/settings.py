@@ -55,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.authentication_middleware.AuthenticationMiddleware',
+    'core.middleware.request_logging_middleware.RequestLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -139,3 +140,6 @@ if not TRAINING_SIMULATION_MODE and DEBUG:
     _tf_available, _ = _check_tf()
     if not _tf_available:
         TRAINING_SIMULATION_MODE = True
+
+# Logging & monitoring — Phase 9
+SLOW_REQUEST_THRESHOLD_MS = int(os.getenv('SLOW_REQUEST_THRESHOLD_MS', '1000'))

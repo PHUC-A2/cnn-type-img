@@ -86,8 +86,17 @@ class PredictionService:
             image_path = PredictionStorageService.resolve_path(image_url)
             inference = CnnPredictorService.predict(cnn, image_path, class_labels, top_k=top_k)
         except ValueError as exc:
+            from apps.monitoring.services.system_log_service import SystemLogService
+            SystemLogService.warning('prediction', str(exc), context={'model_id': model_id, 'user_id': user.id})
             return PredictionRunResult(False, str(exc))
         except Exception as exc:
+            from apps.monitoring.services.system_log_service import SystemLogService
+            SystemLogService.error(
+                'prediction',
+                f'Phân loại thất bại model #{model_id}',
+                exc=exc,
+                context={'model_id': model_id, 'user_id': user.id},
+            )
             return PredictionRunResult(False, f'Phân loại thất bại: {exc}')
 
         prediction = PredictionRepository.create(
@@ -125,6 +134,18 @@ class PredictionService:
         )
 
         mode = ' (mô phỏng)' if inference.is_simulation else ''
+        from apps.monitoring.services.system_log_service import SystemLogService
+        SystemLogService.info(
+            'prediction',
+            f'Phân loại thành công{mode}: {inference.predicted_class}',
+            context={
+                'prediction_id': prediction.id,
+                'model_id': cnn.id,
+                'user_id': user.id,
+                'inference_time_ms': inference.inference_time_ms,
+                'confidence': inference.confidence_score,
+            },
+        )
         return PredictionRunResult(
             success=True,
             message=f'Phân loại thành công{mode}.',

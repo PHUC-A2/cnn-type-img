@@ -120,3 +120,34 @@ class AdminModelForm(forms.Form):
     model_name = forms.CharField(max_length=100, label='Tên mô hình', widget=forms.TextInput(attrs={'class': 'aurora-input'}))
     description = forms.CharField(required=False, label='Mô tả', widget=forms.Textarea(attrs={'class': 'aurora-input', 'rows': 3}))
     is_active = forms.BooleanField(required=False, label='Đang kích hoạt', widget=forms.CheckboxInput(attrs={'class': 'aurora-checkbox'}))
+
+
+class AdminLogFilterForm(forms.Form):
+    """Lọc trang logs admin."""
+
+    tab = forms.ChoiceField(
+        required=False,
+        label='Loại log',
+        choices=[
+            ('system', 'Log hệ thống'),
+            ('requests', 'Log request'),
+            ('slow', 'Request chậm'),
+        ],
+        widget=forms.Select(attrs={'class': 'aurora-input'}),
+    )
+    level = forms.ChoiceField(
+        required=False,
+        label='Mức độ',
+        choices=[('', '— Tất cả —'), ('info', 'Thông tin'), ('warning', 'Cảnh báo'), ('error', 'Lỗi')],
+        widget=forms.Select(attrs={'class': 'aurora-input'}),
+    )
+    source = forms.CharField(
+        required=False,
+        label='Nguồn',
+        widget=forms.TextInput(attrs={'class': 'aurora-input', 'placeholder': 'training, prediction, middleware...'}),
+    )
+    path = forms.CharField(
+        required=False,
+        label='Đường dẫn',
+        widget=forms.TextInput(attrs={'class': 'aurora-input', 'placeholder': '/predict/...'}),
+    )

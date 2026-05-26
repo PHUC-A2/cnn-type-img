@@ -23,4 +23,5 @@ urlpatterns = [
     path('admin-panel/models/<int:model_id>/deactivate/', views.admin_model_deactivate_view, name='models_deactivate'),
     path('admin-panel/training-jobs/', views.admin_training_jobs_list_view, name='training_list'),
     path('admin-panel/predictions/', views.admin_predictions_list_view, name='predictions_list'),
+    path('admin-panel/logs/', views.admin_logs_view, name='logs'),
 ]

@@ -31,5 +31,10 @@
             <i data-lucide="scan-eye" class="w-3.5 h-3.5"></i>
             Phân loại
         </a>
+        <a href="{% url 'monitoring:logs' %}"
+           class="aurora-btn {% if admin_section == 'logs' %}aurora-btn-primary{% else %}aurora-btn-secondary{% endif %} !py-1.5 !px-3 text-xs">
+            <i data-lucide="scroll-text" class="w-3.5 h-3.5"></i>
+            Log
+        </a>
     </div>
 </div>
