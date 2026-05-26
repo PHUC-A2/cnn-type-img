@@ -1,0 +1,155 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Log hệ thống — Admin{% endblock %}
+{% block page_heading %}Log & Giám sát{% endblock %}
+
+{% block content %}
+{% include 'monitoring/partials/admin_nav.html' %}
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Lỗi hệ thống</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#EF4444]">{{ stats.error_count }}</p>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Cảnh báo</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#F59E0B]">{{ stats.warning_count }}</p>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Request chậm</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#8B5CF6]">{{ stats.slow_request_count }}</p>
+        <p class="text-xs text-[#94A3B8] mt-1">≥ {{ slow_threshold_ms }}ms</p>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Latency TB</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#14B8A6]">
+            {% if stats.avg_latency_ms %}{{ stats.avg_latency_ms }}<span class="text-sm font-normal"> ms</span>{% else %}—{% endif %}
+        </p>
+    </div>
+</div>
+
+{% if stats.cpu_percent is not None %}
+<div class="aurora-card p-5 mb-6">
+    <h3 class="font-bold text-[#0F172A] mb-3">Tài nguyên hệ thống</h3>
+    <div class="grid grid-cols-2 gap-4 text-sm max-w-md">
+        <div><span class="text-[#94A3B8]">CPU</span><p class="font-bold text-lg">{{ stats.cpu_percent }}%</p></div>
+        <div><span class="text-[#94A3B8]">RAM</span><p class="font-bold text-lg">{{ stats.memory_percent }}%</p></div>
+    </div>
+</div>
+{% endif %}
+
+<div class="aurora-card p-5 mb-5">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 items-end">
+        <div>
+            <label class="aurora-label" for="id_tab">{{ form.tab.label }}</label>
+            {{ form.tab }}
+        </div>
+        {% if tab == 'system' %}
+        <div>
+            <label class="aurora-label" for="id_level">{{ form.level.label }}</label>
+            {{ form.level }}
+        </div>
+        <div>
+            <label class="aurora-label" for="id_source">{{ form.source.label }}</label>
+            {{ form.source }}
+        </div>
+        {% else %}
+        <div class="md:col-span-2">
+            <label class="aurora-label" for="id_path">{{ form.path.label }}</label>
+            {{ form.path }}
+        </div>
+        {% endif %}
+        <div class="flex gap-2">
+            <button type="submit" class="aurora-btn aurora-btn-primary"><i data-lucide="filter" class="w-4 h-4"></i> Lọc</button>
+            <a href="{% url 'monitoring:logs' %}" class="aurora-btn aurora-btn-secondary">Xóa lọc</a>
+        </div>
+    </form>
+</div>
+
+<div class="aurora-card overflow-hidden">
+    <div class="px-5 py-4 border-b border-[#E2E8F0] flex justify-between items-center">
+        <h2 class="font-bold text-[#0F172A]">
+            {% if tab == 'slow' %}Request chậm
+            {% elif tab == 'requests' %}Log request HTTP
+            {% else %}Log hệ thống{% endif %}
+        </h2>
+        <span class="text-sm text-[#94A3B8]">{{ page_result.total_count }} bản ghi</span>
+    </div>
+
+    {% if tab == 'system' %}
+    <div class="overflow-x-auto">
+        <table class="aurora-table w-full text-sm">
+            <thead>
+                <tr class="text-left text-[#94A3B8] border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                    <th class="px-5 py-3">Thời gian</th>
+                    <th class="px-5 py-3">Mức độ</th>
+                    <th class="px-5 py-3">Nguồn</th>
+                    <th class="px-5 py-3">Nội dung</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[#E2E8F0]">
+                {% for row in page_result.items %}
+                <tr class="hover:bg-[#F8FAFC] align-top">
+                    <td class="px-5 py-3 text-[#94A3B8] whitespace-nowrap">{{ row.created_at|date:"d/m/Y H:i:s" }}</td>
+                    <td class="px-5 py-3">
+                        <span class="aurora-badge {% if row.level == 'error' %}text-[#EF4444]{% elif row.level == 'warning' %}text-[#F59E0B]{% endif %}">
+                            {{ row.get_level_display_vi }}
+                        </span>
+                    </td>
+                    <td class="px-5 py-3 font-medium text-[#334155]">{{ row.source }}</td>
+                    <td class="px-5 py-3 text-[#475569]">
+                        <p>{{ row.message }}</p>
+                        {% if row.stack_trace %}
+                        <details class="mt-2">
+                            <summary class="text-xs text-[#94A3B8] cursor-pointer">Stack trace</summary>
+                            <pre class="text-xs mt-2 p-2 bg-[#F8FAFC] rounded-lg overflow-x-auto whitespace-pre-wrap">{{ row.stack_trace }}</pre>
+                        </details>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="px-5 py-8 text-center text-[#94A3B8]">Không có log hệ thống.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="overflow-x-auto">
+        <table class="aurora-table w-full text-sm">
+            <thead>
+                <tr class="text-left text-[#94A3B8] border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                    <th class="px-5 py-3">Thời gian</th>
+                    <th class="px-5 py-3">Method</th>
+                    <th class="px-5 py-3">Đường dẫn</th>
+                    <th class="px-5 py-3">Status</th>
+                    <th class="px-5 py-3">Thời gian (ms)</th>
+                    <th class="px-5 py-3">IP</th>
+                    <th class="px-5 py-3">Người dùng</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[#E2E8F0]">
+                {% for row in page_result.items %}
+                <tr class="hover:bg-[#F8FAFC] {% if row.is_slow %}bg-[#FFF7ED]{% endif %}">
+                    <td class="px-5 py-3 text-[#94A3B8] whitespace-nowrap">{{ row.created_at|date:"d/m/Y H:i:s" }}</td>
+                    <td class="px-5 py-3 font-semibold">{{ row.method }}</td>
+                    <td class="px-5 py-3 max-w-xs truncate" title="{{ row.path }}">{{ row.path }}</td>
+                    <td class="px-5 py-3">
+                        <span class="{% if row.status_code >= 500 %}text-[#EF4444]{% elif row.status_code >= 400 %}text-[#F59E0B]{% else %}text-[#059669]{% endif %} font-semibold">
+                            {{ row.status_code }}
+                        </span>
+                    </td>
+                    <td class="px-5 py-3 {% if row.is_slow %}text-[#F59E0B] font-bold{% endif %}">{{ row.execution_time_ms|floatformat:1 }}</td>
+                    <td class="px-5 py-3 text-[#64748B]">{{ row.ip_address|default:"—" }}</td>
+                    <td class="px-5 py-3">{% if row.user %}{{ row.user.get_display_name }}{% else %}—{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="px-5 py-8 text-center text-[#94A3B8]">Không có log request.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% include 'monitoring/partials/pagination.html' %}
+</div>
+{% endblock %}

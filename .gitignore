@@ -38,9 +38,9 @@ my-project/trained_models/
 **/.env.*
 !**/.env.example
 
-# Log
+# Log runtime Django/loguru (KHÔNG dùng logs/ — sẽ ignore cả templates/monitoring/logs/)
+my-project/logs/
 *.log
-logs/
 
 # Testing / lint cache
 .pytest_cache/
