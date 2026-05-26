@@ -6,9 +6,10 @@ import time
 from django.utils import timezone
 
 from apps.models_ai.services.model_version_service import ModelVersionService
-from apps.training.models import ModelMetrics, TrainingHistory
+from apps.training.models import TrainingHistory
 from apps.training.repositories.training_job_repository import TrainingJobRepository
 from apps.training.services.model_storage_service import ModelStorageService
+from apps.training.services.training_metrics_service import TrainingMetricsService
 from core.enums.training_status import TrainingStatus
 
 
@@ -67,13 +68,7 @@ class SimulationTrainerService:
             cnn.model_size_mb = ModelStorageService.get_file_size_mb(model_path)
             cnn.save()
 
-            ModelMetrics.objects.create(
-                training_job=job,
-                accuracy=job.validation_accuracy,
-                precision_score=job.validation_accuracy,
-                recall_score=job.validation_accuracy,
-                f1_score=job.validation_accuracy,
-            )
+            TrainingMetricsService.save_simulation(job)
 
             ModelVersionService.on_training_completed(job.id)
 

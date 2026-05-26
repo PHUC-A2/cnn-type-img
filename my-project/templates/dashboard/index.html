@@ -78,8 +78,12 @@
             </h2>
             <p class="text-[#475569] mt-2 text-sm leading-relaxed">
                 Không gian làm việc AI đã sẵn sàng. Bạn có thể tải bộ dữ liệu, huấn luyện CNN,
-                phân loại ảnh và xem lại toàn bộ lịch sử dự đoán.
+                phân loại ảnh, xem lịch sử dự đoán và theo dõi thống kê trên dashboard phân tích.
             </p>
+            <a href="{% url 'analytics:index' %}" class="aurora-btn aurora-btn-primary mt-4 inline-flex">
+                <i data-lucide="chart-line" class="w-4 h-4"></i>
+                Mở phân tích AI
+            </a>
             {% if request.user.is_admin %}
             <div class="aurora-alert aurora-alert-info mt-4 mb-0">
                 <i data-lucide="shield" class="w-4 h-4"></i>

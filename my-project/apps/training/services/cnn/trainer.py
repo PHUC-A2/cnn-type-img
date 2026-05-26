@@ -6,11 +6,12 @@ from pathlib import Path
 from django.utils import timezone
 
 from apps.models_ai.services.model_version_service import ModelVersionService
-from apps.training.models import ModelMetrics, TrainingHistory, TrainingJob
+from apps.training.models import TrainingHistory, TrainingJob
 from apps.training.repositories.training_job_repository import TrainingJobRepository
 from apps.training.services.cnn.architecture_builder import build_cnn_model
 from apps.training.services.cnn.preprocessor import DatasetPreprocessorService
 from apps.training.services.model_storage_service import ModelStorageService
+from apps.training.services.training_metrics_service import TrainingMetricsService
 from core.enums.training_status import TrainingStatus
 
 
@@ -40,10 +41,10 @@ class CnnTrainerService:
                 )
 
             cls._update_job(job, TrainingStatus.TRAINING, 'Đang huấn luyện mô hình...')
-            cls._train_keras(job, data_root)
+            eval_data = cls._train_keras(job, data_root)
 
             cls._update_job(job, TrainingStatus.VALIDATING, 'Đang tính metrics...')
-            cls._save_metrics(job)
+            cls._save_metrics(job, eval_data)
 
             ModelVersionService.on_training_completed(job.id)
 
@@ -59,7 +60,8 @@ class CnnTrainerService:
             close_old_connections()
 
     @classmethod
-    def _train_keras(cls, job: TrainingJob, data_root: Path) -> None:
+    def _train_keras(cls, job: TrainingJob, data_root: Path):
+        """Huấn luyện Keras — trả về tuple (y_true, y_pred, labels) để đánh giá."""
         import tensorflow as tf
         from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
         from tensorflow.keras.optimizers import Adam, RMSprop, SGD
@@ -119,6 +121,21 @@ class CnnTrainerService:
 
         cls._finalize_model(job, model, model_path, history)
 
+        try:
+            import numpy as np
+
+            y_pred_probs = model.predict(val_gen, verbose=0)
+            y_pred = np.argmax(y_pred_probs, axis=1)
+            val_gen.reset()
+            y_true = val_gen.classes[: len(y_pred)]
+            class_labels = sorted(
+                train_gen.class_indices.keys(),
+                key=lambda name: train_gen.class_indices[name],
+            )
+            return y_true, y_pred, class_labels
+        except Exception:
+            return None
+
     @staticmethod
     def _get_optimizer(name: str, lr: float):
         from tensorflow.keras.optimizers import Adam, RMSprop, SGD
@@ -146,15 +163,13 @@ class CnnTrainerService:
             TrainingJobRepository.save(job)
 
     @classmethod
-    def _save_metrics(cls, job: TrainingJob) -> None:
-        acc = job.validation_accuracy or job.train_accuracy or 0.0
-        ModelMetrics.objects.create(
-            training_job=job,
-            accuracy=acc,
-            precision_score=acc,
-            recall_score=acc,
-            f1_score=acc,
-        )
+    def _save_metrics(cls, job: TrainingJob, eval_data=None) -> None:
+        """Lưu metrics — ưu tiên sklearn nếu có dữ liệu validation."""
+        if eval_data:
+            y_true, y_pred, class_labels = eval_data
+            TrainingMetricsService.save_from_predictions(job, y_true, y_pred, class_labels)
+            return
+        TrainingMetricsService.save_fallback(job)
 
     @staticmethod
     def _format_training_error(exc: Exception) -> str:

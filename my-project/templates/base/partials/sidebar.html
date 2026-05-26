@@ -86,10 +86,12 @@
             <i data-lucide="history" class="w-5 h-5 flex-shrink-0"></i>
             <span class="nav-label truncate">Lịch sử</span>
         </a>
-        <a href="#" class="nav-item nav-item-disabled" title="Phân tích">
+        <a href="{% url 'analytics:index' %}"
+           class="nav-item {% if active_nav == 'analytics' %}nav-item-active{% endif %}"
+           title="Phân tích"
+           @click="closeMobile()">
             <i data-lucide="chart-line" class="w-5 h-5 flex-shrink-0"></i>
             <span class="nav-label truncate">Phân tích</span>
-            <span class="aurora-badge ml-auto nav-label" x-show="!isIconOnly()">G7</span>
         </a>
 
         {% if request.user.is_admin %}

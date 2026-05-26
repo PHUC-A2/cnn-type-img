@@ -1,0 +1,326 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Phân tích AI — Vision CNN{% endblock %}
+{% block page_heading %}Phân tích AI{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="mb-5">
+    <p class="text-sm text-[#475569]">
+        Tổng quan huấn luyện, so sánh mô hình, phân bố class và thống kê phân loại ảnh.
+    </p>
+</div>
+
+{# Hàng widget tổng quan #}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mb-6">
+    <div class="analytics-card aurora-card p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-[#94A3B8]">Bộ dữ liệu</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">{{ dashboard.summary.total_datasets }}</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl icon-bg-cyan flex items-center justify-center">
+                <i data-lucide="database" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </div>
+    <div class="analytics-card aurora-card p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-[#94A3B8]">Mô hình CNN</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">{{ dashboard.summary.total_models }}</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl icon-bg-purple flex items-center justify-center">
+                <i data-lucide="brain" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </div>
+    <div class="analytics-card aurora-card p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-[#94A3B8]">Job hoàn thành</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#10B981]">{{ dashboard.summary.completed_jobs }}</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl icon-bg-green flex items-center justify-center">
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </div>
+    <div class="analytics-card aurora-card p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-[#94A3B8]">Lượt phân loại</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">{{ dashboard.summary.total_predictions }}</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl icon-bg-pink flex items-center justify-center">
+                <i data-lucide="scan-eye" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </div>
+    <div class="analytics-card aurora-card p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-[#94A3B8]">Accuracy val TB</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#14B8A6]">
+                    {% if dashboard.summary.avg_val_accuracy %}{{ dashboard.summary.avg_val_accuracy|floatformat:4 }}{% else %}—{% endif %}
+                </p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl icon-bg-teal flex items-center justify-center">
+                <i data-lucide="target" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </div>
+    <div class="analytics-card aurora-card p-5">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-[#94A3B8]">Độ tin cậy TB</p>
+                <p class="text-2xl aurora-metric mt-1 text-[#8B5CF6]">
+                    {% if dashboard.summary.avg_confidence %}{{ dashboard.summary.avg_confidence|floatformat:4 }}{% else %}—{% endif %}
+                </p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl icon-bg-purple flex items-center justify-center">
+                <i data-lucide="gauge" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Chọn job huấn luyện #}
+<div class="analytics-card aurora-card p-5 mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+        <div>
+            <label class="aurora-label" for="id_job_id">{{ filter_form.job_id.label }}</label>
+            {{ filter_form.job_id }}
+            {% if dashboard.selected_job_label %}
+            <p class="text-xs text-[#94A3B8] mt-2">Đang xem: <strong>{{ dashboard.selected_job_label }}</strong></p>
+            {% endif %}
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="aurora-btn aurora-btn-primary">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                Cập nhật
+            </button>
+            <a href="{% url 'analytics:index' %}" class="aurora-btn aurora-btn-secondary">Xóa chọn</a>
+        </div>
+    </form>
+</div>
+
+{% if dashboard.selected_job_id %}
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6">
+    <div class="analytics-card aurora-card p-5">
+        <h3 class="font-bold text-[#0F172A] mb-3">Biểu đồ Accuracy (training_history)</h3>
+        <canvas id="analyticsAccuracyChart" height="180"></canvas>
+    </div>
+    <div class="analytics-card aurora-card p-5">
+        <h3 class="font-bold text-[#0F172A] mb-3">Biểu đồ Loss (training_history)</h3>
+        <canvas id="analyticsLossChart" height="180"></canvas>
+    </div>
+</div>
+{% else %}
+<div class="analytics-card aurora-card p-6 mb-6 empty-state border-0">
+    <p class="text-sm text-[#94A3B8]">Chưa có job huấn luyện hoàn thành — hãy huấn luyện mô hình trước để xem biểu đồ accuracy/loss.</p>
+    <a href="{% url 'training:list' %}" class="aurora-btn aurora-btn-primary mt-4 inline-flex">
+        <i data-lucide="cpu" class="w-4 h-4"></i>
+        Huấn luyện mô hình
+    </a>
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6">
+    <div class="analytics-card aurora-card p-5">
+        <h3 class="font-bold text-[#0F172A] mb-3">So sánh mô hình (model_metrics)</h3>
+        {% if dashboard.model_comparison %}
+        <canvas id="modelComparisonChart" height="200"></canvas>
+        {% else %}
+        <p class="text-sm text-[#94A3B8]">Chưa có metrics mô hình.</p>
+        {% endif %}
+    </div>
+    <div class="analytics-card aurora-card p-5">
+        <h3 class="font-bold text-[#0F172A] mb-3">Phân bố class dataset</h3>
+        {% if dashboard.dataset_distribution %}
+        <canvas id="datasetDistributionChart" height="200"></canvas>
+        {% else %}
+        <p class="text-sm text-[#94A3B8]">Chưa có dữ liệu phân bố class.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6">
+    <div class="analytics-card aurora-card p-5">
+        <h3 class="font-bold text-[#0F172A] mb-3">Thống kê phân loại (predictions)</h3>
+        {% if dashboard.prediction_distribution %}
+        <canvas id="predictionDistributionChart" height="200"></canvas>
+        {% else %}
+        <p class="text-sm text-[#94A3B8]">Chưa có lượt phân loại nào.</p>
+        {% endif %}
+    </div>
+    <div class="analytics-card aurora-card p-5">
+        <h3 class="font-bold text-[#0F172A] mb-3">Confusion Matrix</h3>
+        {% if dashboard.confusion.matrix %}
+        {% if dashboard.confusion.image_base64 %}
+        <img src="data:image/png;base64,{{ dashboard.confusion.image_base64 }}"
+             alt="Confusion matrix"
+             class="w-full rounded-xl border border-[#E2E8F0] bg-white mb-4">
+        {% endif %}
+        <div class="overflow-x-auto">
+            <table class="aurora-table w-full text-xs confusion-matrix-table">
+                <thead>
+                    <tr>
+                        <th class="px-2 py-2 text-[#94A3B8]">Thực tế \ Dự đoán</th>
+                        {% for label in dashboard.confusion.labels %}
+                        <th class="px-2 py-2 font-semibold">{{ label }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in dashboard.confusion.rows %}
+                    <tr>
+                        <td class="px-2 py-2 font-semibold text-[#475569]">{{ row.label }}</td>
+                        {% for value in row.values %}
+                        <td class="px-2 py-2 text-center confusion-cell"
+                            style="--cm-intensity: {% widthratio value dashboard.confusion.max_value 100 %}%;">
+                            {{ value }}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-sm text-[#94A3B8]">Chọn job huấn luyện hoàn thành để xem confusion matrix.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+window.initAnalyticsCharts = function initAnalyticsCharts() {
+    if (!window.Chart) return;
+
+    const lineOptions = {
+        responsive: true,
+        plugins: { legend: { labels: { boxWidth: 12 } } },
+        scales: { y: { grid: { color: '#F1F5F9' } }, x: { grid: { display: false } } },
+    };
+
+    const accCanvas = document.getElementById('analyticsAccuracyChart');
+    if (accCanvas && !accCanvas.dataset.chartBound) {
+        accCanvas.dataset.chartBound = '1';
+        new Chart(accCanvas, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels_json|safe }},
+                datasets: [
+                    { label: 'Huấn luyện', data: {{ chart_train_acc_json|safe }}, borderColor: '#14B8A6', tension: 0.3 },
+                    { label: 'Kiểm tra', data: {{ chart_val_acc_json|safe }}, borderColor: '#8B5CF6', tension: 0.3 },
+                ],
+            },
+            options: lineOptions,
+        });
+    }
+
+    const lossCanvas = document.getElementById('analyticsLossChart');
+    if (lossCanvas && !lossCanvas.dataset.chartBound) {
+        lossCanvas.dataset.chartBound = '1';
+        new Chart(lossCanvas, {
+            type: 'line',
+            data: {
+                labels: {{ chart_labels_json|safe }},
+                datasets: [
+                    { label: 'Loss train', data: {{ chart_train_loss_json|safe }}, borderColor: '#14B8A6', tension: 0.3 },
+                    { label: 'Loss val', data: {{ chart_val_loss_json|safe }}, borderColor: '#8B5CF6', tension: 0.3 },
+                ],
+            },
+            options: lineOptions,
+        });
+    }
+
+    const cmpCanvas = document.getElementById('modelComparisonChart');
+    if (cmpCanvas && !cmpCanvas.dataset.chartBound) {
+        cmpCanvas.dataset.chartBound = '1';
+        new Chart(cmpCanvas, {
+            type: 'bar',
+            data: {
+                labels: {{ model_comparison_labels_json|safe }},
+                datasets: [
+                    {
+                        label: 'Accuracy',
+                        data: {{ model_comparison_accuracy_json|safe }},
+                        backgroundColor: 'rgba(20, 184, 166, 0.65)',
+                        borderRadius: 8,
+                    },
+                    {
+                        label: 'F1 Score',
+                        data: {{ model_comparison_f1_json|safe }},
+                        backgroundColor: 'rgba(139, 92, 246, 0.65)',
+                        borderRadius: 8,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                scales: { y: { beginAtZero: true, max: 1 } },
+            },
+        });
+    }
+
+    const dsCanvas = document.getElementById('datasetDistributionChart');
+    if (dsCanvas && !dsCanvas.dataset.chartBound) {
+        dsCanvas.dataset.chartBound = '1';
+        new Chart(dsCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: {{ dataset_labels_json|safe }},
+                datasets: [{
+                    data: {{ dataset_counts_json|safe }},
+                    backgroundColor: ['#14B8A6', '#8B5CF6', '#EC4899', '#22D3EE', '#F59E0B', '#10B981'],
+                }],
+            },
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } },
+        });
+    }
+
+    const predCanvas = document.getElementById('predictionDistributionChart');
+    if (predCanvas && !predCanvas.dataset.chartBound) {
+        predCanvas.dataset.chartBound = '1';
+        new Chart(predCanvas, {
+            type: 'bar',
+            data: {
+                labels: {{ prediction_labels_json|safe }},
+                datasets: [{
+                    label: 'Số lượt',
+                    data: {{ prediction_counts_json|safe }},
+                    backgroundColor: 'rgba(236, 72, 153, 0.65)',
+                    borderRadius: 8,
+                }],
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+            },
+        });
+    }
+
+    if (window.lucide) lucide.createIcons();
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.initAnalyticsCharts();
+
+    if (window.gsap) {
+        gsap.from('.analytics-card', {
+            opacity: 0,
+            y: 24,
+            duration: 0.55,
+            stagger: 0.07,
+            ease: 'power2.out',
+        });
+    }
+});
+</script>
+{% endblock %}

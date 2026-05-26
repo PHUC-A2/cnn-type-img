@@ -114,6 +114,8 @@ class ModelMetrics(models.Model):
     precision_score = models.FloatField(blank=True, null=True, verbose_name='Precision')
     recall_score = models.FloatField(blank=True, null=True, verbose_name='Recall')
     f1_score = models.FloatField(blank=True, null=True, verbose_name='F1 score')
+    confusion_matrix_json = models.JSONField(blank=True, null=True, verbose_name='Confusion matrix')
+    class_labels_json = models.JSONField(blank=True, null=True, verbose_name='Nhãn class')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Ngày tạo')
 
     class Meta:

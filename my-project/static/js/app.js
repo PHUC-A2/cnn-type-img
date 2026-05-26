@@ -107,4 +107,7 @@ document.body.addEventListener('htmx:afterSwap', () => {
     if (window.initTrainingCharts) {
         window.initTrainingCharts();
     }
+    if (window.initAnalyticsCharts) {
+        window.initAnalyticsCharts();
+    }
 });
