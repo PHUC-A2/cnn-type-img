@@ -1,0 +1,156 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ detail.model.model_name }} — Mô hình CNN{% endblock %}
+{% block page_heading %}{{ detail.model.model_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+        <p class="text-sm text-[#475569]">
+            Kiến trúc <strong>{{ detail.model.architecture_type }}</strong> · {{ detail.model.framework|upper }}
+        </p>
+        <p class="text-xs text-[#94A3B8] mt-0.5 font-mono">{{ detail.model.model_slug }}</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+        {% if detail.is_ready %}
+        <a href="{% url 'models_ai:download' detail.model.id %}" class="aurora-btn aurora-btn-primary">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            Tải file .h5
+        </a>
+        {% endif %}
+        {% if detail.latest_job %}
+        <a href="{% url 'training:detail' detail.latest_job.id %}" class="aurora-btn aurora-btn-secondary">
+            <i data-lucide="activity" class="w-4 h-4"></i>
+            Xem huấn luyện
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Độ chính xác (production)</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#10B981]">
+            {% if detail.production_version and detail.production_version.accuracy_score is not None %}
+                {{ detail.production_version.accuracy_score|floatformat:4 }}
+            {% else %}
+                —
+            {% endif %}
+        </p>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Tham số</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">
+            {% if detail.model.total_parameters %}{{ detail.model.total_parameters|floatformat:0 }}{% else %}—{% endif %}
+        </p>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Kích thước input</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">{{ detail.model.input_width }}×{{ detail.model.input_height }}</p>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Dung lượng file</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#8B5CF6]">
+            {% if detail.model.model_size_mb %}{{ detail.model.model_size_mb }} MB{% else %}—{% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-6">
+    <div class="xl:col-span-2 aurora-card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-[#0F172A]">Phiên bản mô hình</h2>
+            <span class="text-sm text-[#94A3B8]">{{ detail.versions|length }} phiên bản</span>
+        </div>
+
+        {% if detail.versions %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-[#94A3B8] border-b border-[#E2E8F0]">
+                        <th class="pb-3 pr-4 font-semibold">Phiên bản</th>
+                        <th class="pb-3 pr-4 font-semibold">Accuracy</th>
+                        <th class="pb-3 pr-4 font-semibold">Ngày tạo</th>
+                        <th class="pb-3 font-semibold text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[#E2E8F0]">
+                    {% for version in detail.versions %}
+                    <tr class="{% if version.is_production %}bg-[#ECFDF5]/60{% endif %}">
+                        <td class="py-3 pr-4">
+                            <p class="font-semibold text-[#0F172A]">{{ version.version_number }}</p>
+                            <p class="text-xs text-[#94A3B8] mt-0.5">{{ version.version_name }}</p>
+                            {% if version.is_production %}
+                            <span class="model-badge-production mt-1 inline-flex">Production</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 pr-4 text-[#059669] font-semibold">
+                            {% if version.accuracy_score is not None %}{{ version.accuracy_score|floatformat:4 }}{% else %}—{% endif %}
+                        </td>
+                        <td class="py-3 pr-4 text-[#475569]">{{ version.created_at|date:"d/m/Y H:i" }}</td>
+                        <td class="py-3 text-right">
+                            <div class="flex items-center justify-end gap-2 flex-wrap">
+                                <a href="{% url 'models_ai:download' detail.model.id %}?version_id={{ version.id }}"
+                                   class="aurora-btn aurora-btn-secondary !py-1.5 !px-3 text-xs">
+                                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                    Tải
+                                </a>
+                                {% if not version.is_production %}
+                                <form method="post" action="{% url 'models_ai:set_production' detail.model.id version.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="aurora-btn aurora-btn-primary !py-1.5 !px-3 text-xs">
+                                        Đặt production
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-sm text-[#94A3B8]">Chưa có phiên bản nào. Hoàn thành huấn luyện để tạo phiên bản đầu tiên.</p>
+        {% endif %}
+    </div>
+
+    <div class="aurora-card p-6">
+        <h2 class="text-lg font-bold text-[#0F172A] mb-4">Thông tin mô hình</h2>
+        <dl class="space-y-3 text-sm">
+            {% if detail.model.description %}
+            <div>
+                <dt class="text-[#94A3B8]">Mô tả</dt>
+                <dd class="text-[#475569] mt-0.5">{{ detail.model.description }}</dd>
+            </div>
+            {% endif %}
+            <div>
+                <dt class="text-[#94A3B8]">Phiên bản hiện tại</dt>
+                <dd class="text-[#475569] mt-0.5 font-mono">{{ detail.model.version }}</dd>
+            </div>
+            <div>
+                <dt class="text-[#94A3B8]">Trạng thái file</dt>
+                <dd class="mt-0.5">
+                    {% if detail.is_ready %}
+                    <span class="text-[#059669] font-semibold">Sẵn sàng sử dụng</span>
+                    {% else %}
+                    <span class="text-[#DC2626] font-semibold">Chưa có file hợp lệ</span>
+                    {% endif %}
+                </dd>
+            </div>
+            <div>
+                <dt class="text-[#94A3B8]">Người tạo</dt>
+                <dd class="text-[#475569] mt-0.5">{{ detail.model.created_by.get_display_name }}</dd>
+            </div>
+            <div>
+                <dt class="text-[#94A3B8]">Ngày tạo</dt>
+                <dd class="text-[#475569] mt-0.5">{{ detail.model.created_at|date:"d/m/Y H:i" }}</dd>
+            </div>
+        </dl>
+        <a href="{% url 'models_ai:list' %}" class="aurora-btn aurora-btn-secondary w-full mt-6">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Quay lại danh sách
+        </a>
+    </div>
+</div>
+{% endblock %}

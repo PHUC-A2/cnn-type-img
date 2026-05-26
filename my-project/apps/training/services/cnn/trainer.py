@@ -5,6 +5,7 @@ from pathlib import Path
 
 from django.utils import timezone
 
+from apps.models_ai.services.model_version_service import ModelVersionService
 from apps.training.models import ModelMetrics, TrainingHistory, TrainingJob
 from apps.training.repositories.training_job_repository import TrainingJobRepository
 from apps.training.services.cnn.architecture_builder import build_cnn_model
@@ -43,6 +44,8 @@ class CnnTrainerService:
 
             cls._update_job(job, TrainingStatus.VALIDATING, 'Đang tính metrics...')
             cls._save_metrics(job)
+
+            ModelVersionService.on_training_completed(job.id)
 
             job.execution_time = round(time.time() - started, 2)
             job.finished_at = timezone.now()

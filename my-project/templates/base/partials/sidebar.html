@@ -65,6 +65,13 @@
             <i data-lucide="cpu" class="w-5 h-5 flex-shrink-0"></i>
             <span class="nav-label truncate">Huấn luyện</span>
         </a>
+        <a href="{% url 'models_ai:list' %}"
+           class="nav-item {% if active_nav == 'models' %}nav-item-active{% endif %}"
+           title="Mô hình CNN"
+           @click="closeMobile()">
+            <i data-lucide="brain" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="nav-label truncate">Mô hình CNN</span>
+        </a>
         <a href="#" class="nav-item nav-item-disabled" title="Phân loại">
             <i data-lucide="scan-eye" class="w-5 h-5 flex-shrink-0"></i>
             <span class="nav-label truncate">Phân loại</span>

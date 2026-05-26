@@ -5,6 +5,7 @@ import time
 
 from django.utils import timezone
 
+from apps.models_ai.services.model_version_service import ModelVersionService
 from apps.training.models import ModelMetrics, TrainingHistory
 from apps.training.repositories.training_job_repository import TrainingJobRepository
 from apps.training.services.model_storage_service import ModelStorageService
@@ -73,6 +74,8 @@ class SimulationTrainerService:
                 recall_score=job.validation_accuracy,
                 f1_score=job.validation_accuracy,
             )
+
+            ModelVersionService.on_training_completed(job.id)
 
             job.execution_time = round(time.time() - started, 2)
             job.finished_at = timezone.now()

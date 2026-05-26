@@ -1,0 +1,77 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Mô hình CNN — Vision CNN{% endblock %}
+{% block page_heading %}Mô hình CNN{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <p class="text-sm text-[#475569]">Quản lý mô hình đã huấn luyện, phiên bản và tải file .h5</p>
+    <a href="{% url 'training:list' %}" class="aurora-btn aurora-btn-primary">
+        <i data-lucide="cpu" class="w-4 h-4"></i>
+        Huấn luyện mới
+    </a>
+</div>
+
+{% if cards %}
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+    {% for card in cards %}
+    <a href="{% url 'models_ai:detail' card.model.id %}" class="aurora-card p-5 block group {% if card.production_version %}model-card-production{% endif %}">
+        <div class="flex items-start justify-between gap-3 mb-4">
+            <div class="w-12 h-12 rounded-2xl icon-bg-purple flex items-center justify-center flex-shrink-0">
+                <i data-lucide="brain" class="w-6 h-6"></i>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+                {% if card.production_version %}
+                <span class="model-badge-production">Production</span>
+                {% elif card.is_training %}
+                <span class="aurora-badge text-[#0D9488]">Đang huấn luyện</span>
+                {% elif card.is_ready %}
+                <span class="aurora-badge">Sẵn sàng</span>
+                {% else %}
+                <span class="aurora-badge">Chưa có file</span>
+                {% endif %}
+                {% if card.version_count %}
+                <span class="text-xs text-[#94A3B8]">{{ card.version_count }} phiên bản</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <h3 class="font-bold text-[#0F172A] group-hover:text-[#7C3AED] transition-colors">
+            {{ card.model.model_name }}
+        </h3>
+        {% if card.model.description %}
+        <p class="text-sm text-[#94A3B8] mt-1 line-clamp-2">{{ card.model.description }}</p>
+        {% endif %}
+
+        <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-[#E2E8F0] text-sm text-[#475569]">
+            {% if card.latest_accuracy is not None %}
+            <span class="flex items-center gap-1.5 font-semibold text-[#059669]">
+                <i data-lucide="target" class="w-4 h-4"></i>
+                {{ card.latest_accuracy|floatformat:4 }}
+            </span>
+            {% endif %}
+            <span class="flex items-center gap-1.5">
+                <i data-lucide="scan" class="w-4 h-4 text-[#94A3B8]"></i>
+                {{ card.model.input_width }}×{{ card.model.input_height }}
+            </span>
+            {% if card.model.model_size_mb %}
+            <span class="text-[#94A3B8]">{{ card.model.model_size_mb }} MB</span>
+            {% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="w-14 h-14 rounded-2xl icon-bg-purple flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="brain" class="w-7 h-7"></i>
+    </div>
+    <h3 class="font-bold text-[#0F172A] mb-2">Chưa có mô hình CNN</h3>
+    <p class="text-sm text-[#94A3B8] mb-5">Huấn luyện mô hình đầu tiên từ bộ dữ liệu để quản lý tại đây.</p>
+    <a href="{% url 'training:list' %}" class="aurora-btn aurora-btn-primary">
+        <i data-lucide="cpu" class="w-4 h-4"></i>
+        Bắt đầu huấn luyện
+    </a>
+</div>
+{% endif %}
+{% endblock %}
