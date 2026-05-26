@@ -66,12 +66,18 @@ def predict_result_view(request: HttpRequest, prediction_id: int) -> HttpRespons
 
     probabilities = list(PredictionRepository.get_probabilities(prediction_id))
     preprocess = getattr(prediction, 'preprocess_log', None)
+    label_map = PredictionDisplayService.resolve_label_map_for_model(prediction.model)
     probability_rows = [
-        {'obj': row, 'percent': round(float(row.probability) * 100, 1)}
+        {
+            'obj': row,
+            'percent': round(float(row.probability) * 100, 1),
+            'label_vi': PredictionDisplayService.format_class_label(row.class_name, label_map),
+        }
         for row in probabilities
     ]
-
-    result_display = PredictionDisplayService.build_from_prediction(prediction, probabilities)
+    result_display = PredictionDisplayService.build_from_prediction(
+        prediction, probabilities, label_map,
+    )
 
     context = {
         'page_title': 'Kết quả phân loại',
@@ -80,8 +86,8 @@ def predict_result_view(request: HttpRequest, prediction_id: int) -> HttpRespons
         'probabilities': probability_rows,
         'preprocess': preprocess,
         'result_display': result_display,
-        'chart_labels_json': json.dumps([row.class_name for row in probabilities]),
-        'chart_values_json': json.dumps([float(row.probability) for row in probabilities]),
+        'chart_labels_json': json.dumps([row['label_vi'] for row in probability_rows]),
+        'chart_values_json': json.dumps([float(row['obj'].probability) for row in probability_rows]),
     }
     return render(request, 'predictions/result.html', context)
 
@@ -129,13 +135,20 @@ def history_detail_partial(request: HttpRequest, prediction_id: int) -> HttpResp
         return HttpResponseForbidden('Không có quyền xem bản ghi này.')
 
     probabilities = list(PredictionRepository.get_probabilities(prediction_id))
+    label_map = PredictionDisplayService.resolve_label_map_for_model(prediction.model)
     probability_rows = [
-        {'obj': row, 'percent': round(float(row.probability) * 100, 1)}
+        {
+            'obj': row,
+            'percent': round(float(row.probability) * 100, 1),
+            'label_vi': PredictionDisplayService.format_class_label(row.class_name, label_map),
+        }
         for row in probabilities
     ]
     preprocess = getattr(prediction, 'preprocess_log', None)
 
-    result_display = PredictionDisplayService.build_from_prediction(prediction, probabilities)
+    result_display = PredictionDisplayService.build_from_prediction(
+        prediction, probabilities, label_map,
+    )
 
     context = {
         'prediction': prediction,

@@ -36,8 +36,11 @@
         <div class="flex-1 min-w-0">
             <p class="text-xs font-semibold uppercase tracking-wide text-[#7C3AED]">Kết luận phân loại</p>
             <h2 class="text-2xl sm:text-3xl font-bold text-[#0F172A] mt-1">
-                Ảnh trên là: <span class="text-[#7C3AED]">{{ result_display.verdict_label }}</span>
+                Ảnh trên là: <span class="text-[#7C3AED]">{{ result_display.verdict_label_vi }}</span>
             </h2>
+            <p class="text-xs text-[#64748B] mt-1">
+                Tên class trong dataset: <code class="text-[#7C3AED]">{{ result_display.verdict_label }}</code>
+            </p>
             <p class="text-sm text-[#475569] mt-2 leading-relaxed">
                 {{ result_display.summary_sentence }}
             </p>
@@ -133,7 +136,8 @@
         <div>
             <div class="flex items-center justify-between text-sm mb-1.5">
                 <span class="font-semibold text-[#0F172A] {% if row.obj.rank_order == 1 %}text-[#7C3AED]{% endif %}">
-                    #{{ row.obj.rank_order }} · {{ row.obj.class_name }}
+                    #{{ row.obj.rank_order }} · {{ row.label_vi }}
+                    <span class="text-[#94A3B8] font-normal text-xs">({{ row.obj.class_name }})</span>
                     {% if row.obj.rank_order == 1 %}<span class="model-badge-production ml-2">Top-1</span>{% endif %}
                 </span>
                 <span class="text-[#475569]">{{ row.obj.probability|floatformat:4 }}</span>

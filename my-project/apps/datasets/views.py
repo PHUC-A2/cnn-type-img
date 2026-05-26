@@ -12,6 +12,7 @@ from apps.datasets.repositories.dataset_repository import DatasetRepository
 from apps.datasets.services.dataset_upload_service import DatasetUploadService
 from apps.datasets.validators import ALLOWED_IMAGE_EXTENSIONS, MIN_CLASSES, MIN_IMAGES_PER_CLASS
 from core.permissions.decorators import login_required
+from core.i18n.class_label_vi import suggest_vietnamese_label
 
 
 def _dataset_guide_context() -> dict:
@@ -84,6 +85,7 @@ def dataset_detail_view(request: HttpRequest, dataset_id: int) -> HttpResponse:
         {
             'obj': cls,
             'percent': round(cls.total_images / max_class_count * 100, 1),
+            'label_vi': suggest_vietnamese_label(cls.class_name),
         }
         for cls in classes
     ]

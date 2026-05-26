@@ -51,7 +51,7 @@ class PredictionDisplayServiceTest(TestCase):
 
     def test_build_verdict_for_dog(self):
         display = PredictionDisplayService.build_from_prediction(self.prediction)
-        self.assertEqual(display.verdict_label, 'Con chó')
+        self.assertEqual(display.verdict_label_vi, 'Con chó')
         self.assertEqual(display.category_label, 'Động vật')
         self.assertEqual(display.confidence_percent, 87.0)
         self.assertEqual(len(display.alternatives), 2)
