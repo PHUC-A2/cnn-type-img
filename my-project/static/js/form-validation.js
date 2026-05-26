@@ -164,6 +164,31 @@ document.addEventListener('alpine:init', () => {
             optimizer: () => '',
             loss_function: () => '',
         },
+        predict: {
+            model_id: (v) => (!asString(v).trim() ? 'Vui lòng chọn mô hình CNN.' : ''),
+            image: (file) => {
+                if (!file) return 'Vui lòng chọn ảnh cần phân loại.';
+                const name = file.name.toLowerCase();
+                const ext = name.slice(name.lastIndexOf('.'));
+                const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp'];
+                if (!allowed.includes(ext)) {
+                    return 'Chỉ chấp nhận ảnh JPG, PNG, WEBP, GIF, BMP.';
+                }
+                const maxMb = window.PREDICT_MAX_IMAGE_MB || 10;
+                if (file.size > maxMb * 1024 * 1024) {
+                    return `Ảnh không được vượt quá ${maxMb}MB.`;
+                }
+                return '';
+            },
+            top_k: (v) => {
+                const s = asString(v).trim();
+                if (!s) return '';
+                const n = parseNumber(s);
+                if (Number.isNaN(n)) return 'Top-K phải là số.';
+                if (n < 1 || n > 20) return 'Top-K phải từ 1 đến 20.';
+                return '';
+            },
+        },
     };
 
     Alpine.data('auroraForm', (formType) => ({
@@ -178,11 +203,15 @@ document.addEventListener('alpine:init', () => {
         useRecovery: false,
         avatarPreview: '',
         avatarDragOver: false,
+        predictPreview: '',
 
         init() {
             if (this.formType === 'profile') {
                 this.avatarPreview = this.$el.dataset.avatarInitial || '';
                 this.useRecovery = !!this.getFieldValue('use_password_recovery');
+            }
+            if (this.formType === 'predict') {
+                this.predictPreview = '';
             }
             let serverErrorsJson = '{}';
             const errorsId = this.$el.dataset.errorsId;
@@ -337,6 +366,25 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        onPredictImageChange(event) {
+            const file = event.target.files[0] || null;
+            this.predictPreview = file ? URL.createObjectURL(file) : '';
+            this.onFileChange('image', event);
+            this.$nextTick(() => {
+                if (window.lucide) lucide.createIcons();
+            });
+        },
+
+        handlePredictDrop(event) {
+            this.dragOver = false;
+            const file = event.dataTransfer.files[0];
+            if (!file || !this.$refs.imageInput) return;
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            this.$refs.imageInput.files = dt.files;
+            this.onPredictImageChange({ target: this.$refs.imageInput });
+        },
+
         avatarZoneClass() {
             if (this.showError('avatar')) return 'avatar-upload-zone avatar-upload-zone-error';
             if (this.success['avatar']) return 'avatar-upload-zone avatar-upload-zone-success';
@@ -395,7 +443,7 @@ document.addEventListener('alpine:init', () => {
                 });
                 return;
             }
-            if (this.formType === 'dataset_upload') {
+            if (this.formType === 'dataset_upload' || this.formType === 'predict') {
                 this.uploading = true;
             }
             /* Hợp lệ — để form submit tự nhiên */

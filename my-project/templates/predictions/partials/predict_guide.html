@@ -1,0 +1,100 @@
+{# Alert hướng dẫn phân loại ảnh bằng CNN #}
+<div class="mb-5 space-y-3" x-data="{ openGuide: true }">
+    {% if training_simulation_mode %}
+    <div class="aurora-alert aurora-alert-error items-start !items-start">
+        <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+        <div>
+            <p class="font-semibold">Đang chạy chế độ mô phỏng</p>
+            <p class="text-sm mt-1 opacity-90">
+                Kết quả phân loại có thể là <strong>mô phỏng</strong>, không phải inference TensorFlow thật.
+                Cài <strong>tensorflow</strong> và huấn luyện model thật để có dự đoán chính xác.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="aurora-alert aurora-alert-info items-start !items-start !flex-col !gap-3">
+        <div class="flex w-full items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+                <i data-lucide="scan-eye" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                <div>
+                    <p class="font-semibold">Hướng dẫn phân loại ảnh</p>
+                    <p class="text-sm mt-1 opacity-90">
+                        Upload một ảnh, chọn mô hình CNN đã huấn luyện — hệ thống trả về nhãn và xác suất từng class.
+                    </p>
+                </div>
+            </div>
+            <button type="button"
+                    class="text-xs font-semibold whitespace-nowrap hover:underline flex-shrink-0"
+                    @click="openGuide = !openGuide"
+                    x-text="openGuide ? 'Thu gọn' : 'Mở rộng'"></button>
+        </div>
+
+        <div x-show="openGuide" x-cloak class="w-full pl-8 text-sm space-y-4 text-[#0F766E]">
+            <ul class="space-y-2 list-disc list-inside marker:text-[#14B8A6]">
+                <li>
+                    <strong>Điều kiện:</strong> Cần ít nhất một mô hình CNN đã huấn luyện xong và có phiên bản
+                    <strong>Production</strong> (file <strong>.h5</strong> sẵn sàng). Xem tại
+                    <a href="{% url 'models_ai:list' %}" class="underline font-semibold">Mô hình CNN</a>.
+                </li>
+                <li>
+                    <strong>Chọn mô hình:</strong> Dropdown chỉ liệt kê model bạn có quyền dùng và đã sẵn sàng predict.
+                    Mỗi model gắn với bộ class của dataset đã huấn luyện.
+                </li>
+                <li>
+                    <strong>Ảnh upload:</strong> {{ allowed_image_ext_display }} — tối đa
+                    <strong>{{ max_image_mb }}MB</strong>. Hỗ trợ kéo thả hoặc bấm chọn file.
+                </li>
+                <li>
+                    <strong>Top-K:</strong> Số class hiển thị trên biểu đồ xác suất (mặc định <strong>3</strong>,
+                    tối đa <strong>20</strong>). Top-1 là nhãn có xác suất cao nhất.
+                </li>
+                <li>
+                    <strong>Tiền xử lý:</strong> Ảnh được resize theo kích thước input của model, chuyển RGB và
+                    chuẩn hóa pixel (÷255) trước khi đưa vào CNN.
+                </li>
+            </ul>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div class="rounded-xl bg-white/60 border border-[#99F6E4] px-4 py-3">
+                    <p class="font-semibold mb-2 flex items-center gap-1.5 text-[#059669]">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        Ảnh cho kết quả tốt
+                    </p>
+                    <ul class="text-xs leading-relaxed opacity-90 space-y-1.5 list-disc list-inside">
+                        <li>Cùng loại đối tượng đã huấn luyện (ví dụ chó/mèo nếu model train cho-meo)</li>
+                        <li>Đủ sáng, không mờ, không bị che khuất quá nhiều</li>
+                        <li>Đối tượng chính nằm gần trung tâm khung hình</li>
+                        <li>Một ảnh một đối tượng cần phân loại</li>
+                    </ul>
+                </div>
+
+                <div class="rounded-xl bg-white/60 border border-[#FECACA] px-4 py-3">
+                    <p class="font-semibold mb-2 flex items-center gap-1.5 text-[#DC2626]">
+                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                        Tránh các trường hợp
+                    </p>
+                    <ul class="text-xs leading-relaxed opacity-90 space-y-1.5 list-disc list-inside">
+                        <li>Ảnh không thuộc class nào model đã học</li>
+                        <li>File corrupt, 0 byte hoặc sai định dạng</li>
+                        <li>Chọn model chưa huấn luyện xong / chưa có file .h5</li>
+                        <li>Ảnh quá lớn vượt {{ max_image_mb }}MB</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="rounded-xl bg-white/60 border border-[#99F6E4] px-4 py-3">
+                <p class="font-semibold mb-1">Quy trình nhanh</p>
+                <p class="text-xs leading-relaxed opacity-90">
+                    (1) Huấn luyện model từ dataset → (2) Kiểm tra model có badge
+                    <strong>Production</strong> → (3) Vào trang này, chọn model → (4) Upload ảnh →
+                    (5) Bấm <strong>Phân loại ảnh</strong> → (6) Xem nhãn, độ tin cậy và biểu đồ xác suất.
+                </p>
+            </div>
+
+            <p class="text-xs opacity-80">
+                Kết quả được lưu vào hệ thống — bạn có thể xem lại chi tiết tại trang kết quả sau mỗi lần phân loại.
+            </p>
+        </div>
+    </div>
+</div>

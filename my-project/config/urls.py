@@ -9,6 +9,7 @@ urlpatterns = [
     path('', include('apps.datasets.urls')),
     path('', include('apps.training.urls')),
     path('', include('apps.models_ai.urls')),
+    path('', include('apps.predictions.urls')),
 ]
 
 if settings.DEBUG:

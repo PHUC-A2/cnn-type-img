@@ -1,0 +1,129 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Kết quả phân loại — Vision CNN{% endblock %}
+{% block page_heading %}Kết quả phân loại{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+        <p class="text-sm text-[#475569]">Mô hình: <strong>{{ prediction.model.model_name }}</strong></p>
+        <p class="text-xs text-[#94A3B8] mt-0.5">{{ prediction.created_at|date:"d/m/Y H:i" }}
+            {% if prediction.is_simulation %}· chế độ mô phỏng{% endif %}
+        </p>
+    </div>
+    <a href="{% url 'predictions:predict' %}" class="aurora-btn aurora-btn-secondary">
+        <i data-lucide="scan-eye" class="w-4 h-4"></i>
+        Phân loại ảnh khác
+    </a>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-6">
+    <div class="aurora-card p-6 xl:col-span-1">
+        <h2 class="text-lg font-bold text-[#0F172A] mb-4">Ảnh đầu vào</h2>
+        <img src="{{ prediction.image_url }}" alt="{{ prediction.image_name }}"
+             class="w-full rounded-2xl border border-[#E2E8F0] object-contain max-h-80 bg-[#F8FAFC]">
+        <p class="text-xs text-[#94A3B8] mt-2 truncate">{{ prediction.image_name }}</p>
+    </div>
+
+    <div class="aurora-card p-6 xl:col-span-2">
+        <div class="flex items-start justify-between gap-3 mb-4">
+            <div>
+                <p class="text-sm text-[#94A3B8]">Nhãn dự đoán (Top-1)</p>
+                <p class="text-3xl font-bold text-[#7C3AED] mt-1">{{ prediction.predicted_class }}</p>
+            </div>
+            <div class="text-right">
+                <p class="text-sm text-[#94A3B8]">Độ tin cậy</p>
+                <p class="text-3xl font-bold text-[#059669] mt-1">{{ prediction.confidence_score|floatformat:4 }}</p>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-[#E2E8F0] p-4 bg-[#F8FAFC]">
+            <p class="text-sm font-semibold text-[#0F172A] mb-3">Xác suất theo class (Top-{{ prediction.top_k }})</p>
+            <canvas id="probabilityChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Thời gian inference</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">{{ prediction.inference_time_ms|default:"—" }} ms</p>
+    </div>
+    {% if preprocess %}
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Kích thước gốc</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">{{ preprocess.original_width }}×{{ preprocess.original_height }}</p>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Resize</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#8B5CF6]">{{ preprocess.target_width }}×{{ preprocess.target_height }}</p>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Chuẩn hóa</p>
+        <p class="text-2xl aurora-metric mt-1 text-[#0F172A]">× {{ preprocess.normalize_scale|floatformat:4 }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="aurora-card p-6">
+    <h2 class="text-lg font-bold text-[#0F172A] mb-4">Chi tiết xác suất</h2>
+    <div class="space-y-3">
+        {% for row in probabilities %}
+        <div>
+            <div class="flex items-center justify-between text-sm mb-1.5">
+                <span class="font-semibold text-[#0F172A] {% if row.obj.rank_order == 1 %}text-[#7C3AED]{% endif %}">
+                    #{{ row.obj.rank_order }} · {{ row.obj.class_name }}
+                    {% if row.obj.rank_order == 1 %}<span class="model-badge-production ml-2">Top-1</span>{% endif %}
+                </span>
+                <span class="text-[#475569]">{{ row.obj.probability|floatformat:4 }}</span>
+            </div>
+            <div class="class-bar-track">
+                <div class="class-bar-fill bg-[#8B5CF6]" style="width: {{ row.percent }}%"></div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-sm text-[#94A3B8]">Không có dữ liệu xác suất.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('probabilityChart');
+    if (!canvas || !window.Chart) return;
+
+    const labels = {{ chart_labels_json|safe }};
+    const values = {{ chart_values_json|safe }};
+
+    new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Xác suất',
+                data: values,
+                backgroundColor: 'rgba(139, 92, 246, 0.65)',
+                borderColor: 'rgba(124, 58, 237, 1)',
+                borderWidth: 1,
+                borderRadius: 8,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1,
+                    ticks: { callback: (v) => v.toFixed(2) },
+                },
+            },
+        },
+    });
+});
+</script>
+{% endblock %}

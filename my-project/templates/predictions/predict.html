@@ -1,0 +1,104 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Phân loại ảnh — Vision CNN{% endblock %}
+{% block page_heading %}Phân loại ảnh{% endblock %}
+
+{% block extra_head %}
+<script>window.PREDICT_MAX_IMAGE_MB = {{ max_image_mb }};</script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    {% include 'predictions/partials/predict_guide.html' %}
+
+    {% if not ready_models %}
+    <div class="aurora-alert aurora-alert-info items-start !items-start mb-5">
+        <i data-lucide="info" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+        <div>
+            <p class="font-semibold">Chưa có mô hình sẵn sàng</p>
+            <p class="text-sm mt-1 opacity-90">
+                Bạn cần huấn luyện ít nhất một mô hình CNN (có file .h5 production) trước khi phân loại ảnh.
+            </p>
+            <a href="{% url 'training:list' %}" class="text-sm font-semibold underline mt-2 inline-block">Đi tới huấn luyện →</a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="aurora-card p-6">
+        <div class="mb-6">
+            <h2 class="text-lg font-bold text-[#0F172A]">Upload ảnh cần phân loại</h2>
+            <p class="text-sm text-[#94A3B8] mt-1">Chọn mô hình CNN và tải ảnh — hệ thống trả về nhãn và xác suất từng class.</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" novalidate class="space-y-5"
+              x-data="auroraForm('predict')"
+              data-errors-id="predict-form-errors"
+              @submit="handleFormSubmit($event)">
+            {% csrf_token %}
+
+            <div>
+                <label class="aurora-label" for="id_model_id">{{ form.model_id.label }}</label>
+                <select name="model_id" id="id_model_id" data-field="model_id"
+                        :class="fieldClass('model_id')"
+                        @change="onInput('model_id')">
+                    <option value="">— Chọn mô hình —</option>
+                    {% for cnn in ready_models %}
+                    <option value="{{ cnn.id }}" {% if form.model_id.value|stringformat:'s' == cnn.id|stringformat:'s' %}selected{% endif %}>
+                        {{ cnn.model_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <p x-show="showError('model_id')" x-cloak class="field-error-msg" x-text="errors['model_id']"></p>
+            </div>
+
+            <div>
+                <label class="aurora-label" for="id_top_k">{{ form.top_k.label }}</label>
+                <input type="number" name="top_k" id="id_top_k" min="1" max="20"
+                       value="{{ form.top_k.value|default:3 }}"
+                       data-field="top_k"
+                       :class="fieldClass('top_k')"
+                       @input="onInput('top_k')"
+                       @blur="onBlur('top_k')">
+                <p class="text-xs text-[#94A3B8] mt-1">Số class hiển thị trong biểu đồ xác suất (Top-K).</p>
+                <p x-show="showError('top_k')" x-cloak class="field-error-msg" x-text="errors['top_k']"></p>
+            </div>
+
+            <div>
+                <label class="aurora-label">{{ form.image.label }}</label>
+                <div :class="uploadZoneClass()"
+                     @click="$refs.imageInput.click()"
+                     @dragover.prevent="dragOver = true"
+                     @dragleave.prevent="dragOver = false"
+                     @drop.prevent="handlePredictDrop($event)">
+                    <input type="file" name="image" id="id_image" x-ref="imageInput"
+                           class="hidden" data-field="image"
+                           accept="image/jpeg,image/png,image/webp,image/gif,image/bmp"
+                           @change="onPredictImageChange($event)">
+                    <div class="flex flex-col items-center gap-3 pointer-events-none">
+                        <img x-show="predictPreview" x-cloak :src="predictPreview" alt="Xem trước"
+                             class="max-h-40 rounded-xl object-contain border border-[#E2E8F0]">
+                        <div x-show="!predictPreview" class="w-14 h-14 rounded-2xl icon-bg-pink flex items-center justify-center">
+                            <i data-lucide="scan-eye" class="w-7 h-7"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-[#0F172A]">Kéo thả ảnh vào đây</p>
+                            <p class="text-sm text-[#94A3B8] mt-1">JPG, PNG, WEBP, GIF, BMP — tối đa {{ max_image_mb }}MB</p>
+                        </div>
+                        <p x-show="fileName" x-cloak class="text-sm font-medium text-[#0D9488]" x-text="fileName"></p>
+                    </div>
+                </div>
+                <p x-show="showError('image')" x-cloak class="field-error-msg" x-text="errors['image']"></p>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button type="submit" class="aurora-btn aurora-btn-primary" :disabled="uploading || !{{ ready_models|yesno:'true,false' }}">
+                    <i data-lucide="scan-eye" class="w-4 h-4"></i>
+                    <span x-text="uploading ? 'Đang phân loại...' : 'Phân loại ảnh'"></span>
+                </button>
+                <a href="{% url 'models_ai:list' %}" class="aurora-btn aurora-btn-secondary">Mô hình CNN</a>
+            </div>
+        </form>
+        {{ form.errors.as_json|json_script:"predict-form-errors" }}
+    </div>
+</div>
+{% endblock %}

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'apps.datasets',
     'apps.models_ai',
     'apps.training',
+    'apps.predictions',
     'core',
 ]
 
