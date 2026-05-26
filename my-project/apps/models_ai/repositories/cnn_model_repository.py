@@ -20,6 +20,22 @@ class CnnModelRepository:
             return None
 
     @staticmethod
+    def get_by_id_any(model_id: int) -> Optional[CnnModel]:
+        """Lấy model kể cả inactive — admin panel."""
+        try:
+            return CnnModel.objects.select_related('created_by').get(id=model_id)
+        except CnnModel.DoesNotExist:
+            return None
+
+    @staticmethod
+    def list_all(include_inactive: bool = False):
+        """Danh sách toàn bộ mô hình — admin."""
+        qs = CnnModel.objects.select_related('created_by').order_by('-created_at')
+        if not include_inactive:
+            qs = qs.filter(is_active=True)
+        return qs
+
+    @staticmethod
     def slug_exists(slug: str) -> bool:
         return CnnModel.objects.filter(model_slug=slug).exists()
 

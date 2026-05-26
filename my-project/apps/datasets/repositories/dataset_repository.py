@@ -17,6 +17,22 @@ class DatasetRepository:
             return None
 
     @staticmethod
+    def get_by_id_any(dataset_id: int) -> Optional[Dataset]:
+        """Lấy dataset kể cả inactive — admin panel."""
+        try:
+            return Dataset.objects.select_related('created_by').get(id=dataset_id)
+        except Dataset.DoesNotExist:
+            return None
+
+    @staticmethod
+    def list_all(include_inactive: bool = False):
+        """Danh sách toàn bộ dataset — admin."""
+        qs = Dataset.objects.select_related('created_by').order_by('-created_at')
+        if not include_inactive:
+            qs = qs.filter(is_active=True)
+        return qs
+
+    @staticmethod
     def get_by_slug(slug: str) -> Optional[Dataset]:
         try:
             return Dataset.objects.get(dataset_slug=slug, is_active=True)

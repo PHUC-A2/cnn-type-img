@@ -11,6 +11,7 @@ urlpatterns = [
     path('', include('apps.models_ai.urls')),
     path('', include('apps.predictions.urls')),
     path('', include('apps.analytics.urls')),
+    path('', include('apps.monitoring.urls')),
 ]
 
 if settings.DEBUG:

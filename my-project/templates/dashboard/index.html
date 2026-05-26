@@ -87,7 +87,7 @@
             {% if request.user.is_admin %}
             <div class="aurora-alert aurora-alert-info mt-4 mb-0">
                 <i data-lucide="shield" class="w-4 h-4"></i>
-                <span>Quyền <strong>quản trị viên</strong> — Bảng quản trị sẽ có ở giai đoạn 8.</span>
+                <span>Quyền <strong>quản trị viên</strong> — Truy cập <a href="{% url 'monitoring:dashboard' %}" class="font-semibold underline">Bảng quản trị</a> để quản lý toàn hệ thống.</span>
             </div>
             {% endif %}
         </div>

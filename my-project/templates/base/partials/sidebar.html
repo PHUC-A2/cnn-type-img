@@ -98,10 +98,12 @@
         <div class="pt-4 mt-3 border-t border-[#E2E8F0]/80">
             <p class="nav-section-label px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[#94A3B8]"
                x-show="!isIconOnly()" x-transition.opacity>Quản trị</p>
-            <a href="#" class="nav-item nav-item-disabled" title="Bảng quản trị">
+            <a href="{% url 'monitoring:dashboard' %}"
+               class="nav-item {% if active_nav == 'admin_panel' %}nav-item-active{% endif %}"
+               title="Bảng quản trị"
+               @click="closeMobile()">
                 <i data-lucide="shield" class="w-5 h-5 flex-shrink-0"></i>
                 <span class="nav-label truncate">Bảng quản trị</span>
-                <span class="aurora-badge ml-auto nav-label" x-show="!isIconOnly()">G8</span>
             </a>
         </div>
         {% endif %}

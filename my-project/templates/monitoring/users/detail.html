@@ -1,0 +1,122 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Chi tiết người dùng — Admin{% endblock %}
+{% block page_heading %}Chi tiết người dùng{% endblock %}
+
+{% block content %}
+{% include 'monitoring/partials/admin_nav.html' %}
+
+<div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <p class="text-sm text-[#475569]">Thông tin tài khoản và thống kê hoạt động.</p>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'monitoring:users_edit' detail.user.id %}" class="aurora-btn aurora-btn-primary">
+            <i data-lucide="pencil" class="w-4 h-4"></i>
+            Sửa
+        </a>
+        <a href="{% url 'monitoring:users_list' %}" class="aurora-btn aurora-btn-secondary">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Quay lại
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-6">
+    <div class="aurora-card p-6 xl:col-span-2">
+        <div class="flex items-start gap-4 mb-6">
+            <div class="w-16 h-16 rounded-2xl icon-bg-purple flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {% if detail.user.avatar_url %}
+                <img src="{{ detail.user.avatar_url }}" alt="{{ detail.user.username }}" class="w-full h-full object-cover">
+                {% else %}
+                <i data-lucide="user" class="w-8 h-8"></i>
+                {% endif %}
+            </div>
+            <div>
+                <h2 class="text-xl font-bold text-[#0F172A]">{{ detail.user.get_display_name }}</h2>
+                <p class="text-sm text-[#94A3B8]">@{{ detail.user.username }} · #{{ detail.user.id }}</p>
+                <div class="flex flex-wrap gap-2 mt-2">
+                    {% if detail.user.is_admin %}
+                    <span class="aurora-badge">Quản trị viên</span>
+                    {% else %}
+                    <span class="aurora-badge">Người dùng</span>
+                    {% endif %}
+                    {% if detail.user.is_active %}
+                    <span class="text-xs font-semibold text-[#10B981]">Đang hoạt động</span>
+                    {% else %}
+                    <span class="text-xs font-semibold text-[#EF4444]">Đã khóa</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+                <p class="text-[#94A3B8]">Email</p>
+                <p class="font-semibold text-[#0F172A]">{{ detail.user.email }}</p>
+            </div>
+            <div>
+                <p class="text-[#94A3B8]">Họ tên</p>
+                <p class="font-semibold text-[#0F172A]">{{ detail.user.full_name|default:"—" }}</p>
+            </div>
+            <div>
+                <p class="text-[#94A3B8]">Ngày tạo</p>
+                <p class="font-semibold text-[#0F172A]">{{ detail.user.created_at|date:"d/m/Y H:i" }}</p>
+            </div>
+            <div>
+                <p class="text-[#94A3B8]">Đăng nhập cuối</p>
+                <p class="font-semibold text-[#0F172A]">
+                    {% if detail.user.last_login %}{{ detail.user.last_login|date:"d/m/Y H:i" }}{% else %}—{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="aurora-card p-6">
+        <h3 class="font-bold text-[#0F172A] mb-4">Thống kê hoạt động</h3>
+        <div class="space-y-3 text-sm">
+            <div class="flex justify-between"><span class="text-[#94A3B8]">Bộ dữ liệu</span><span class="font-bold">{{ detail.dataset_count }}</span></div>
+            <div class="flex justify-between"><span class="text-[#94A3B8]">Mô hình CNN</span><span class="font-bold">{{ detail.model_count }}</span></div>
+            <div class="flex justify-between"><span class="text-[#94A3B8]">Job huấn luyện</span><span class="font-bold">{{ detail.training_job_count }}</span></div>
+            <div class="flex justify-between"><span class="text-[#94A3B8]">Lượt phân loại</span><span class="font-bold">{{ detail.prediction_count }}</span></div>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-5 pt-4 border-t border-[#E2E8F0]">
+            <a href="{% url 'monitoring:datasets_list' %}?q={{ detail.user.username }}" class="text-xs text-[#0D9488] font-semibold hover:underline">Dataset →</a>
+            <a href="{% url 'monitoring:predictions_list' %}?user_id={{ detail.user.id }}" class="text-xs text-[#0D9488] font-semibold hover:underline">Phân loại →</a>
+        </div>
+    </div>
+</div>
+
+<div class="aurora-card p-6">
+    <h3 class="font-bold text-[#0F172A] mb-2">Thao tác nhanh</h3>
+    <p class="text-sm text-[#94A3B8] mb-4">Khóa/mở khóa hoặc xóa vĩnh viễn tài khoản.</p>
+    <div class="flex flex-wrap gap-2">
+        {% if detail.user.is_active and detail.user.id != request.user.id %}
+        <form method="post" action="{% url 'monitoring:users_deactivate' detail.user.id %}">
+            {% csrf_token %}
+            <button type="submit" class="aurora-btn aurora-btn-secondary" onclick="return confirm('Khóa người dùng này?')">
+                <i data-lucide="lock" class="w-4 h-4"></i>
+                Khóa
+            </button>
+        </form>
+        {% elif not detail.user.is_active %}
+        <form method="post" action="{% url 'monitoring:users_activate' detail.user.id %}">
+            {% csrf_token %}
+            <button type="submit" class="aurora-btn aurora-btn-secondary" onclick="return confirm('Mở khóa người dùng này?')">
+                <i data-lucide="unlock" class="w-4 h-4"></i>
+                Mở khóa
+            </button>
+        </form>
+        {% endif %}
+
+        {% if detail.user.id != request.user.id %}
+        <form method="post" action="{% url 'monitoring:users_delete' detail.user.id %}">
+            {% csrf_token %}
+            <button type="submit" class="aurora-btn aurora-btn-secondary !text-[#EF4444] !border-[#FECACA]"
+                    onclick="return confirm('Xóa vĩnh viễn người dùng này?\n\nToàn bộ dataset, model, job huấn luyện và lịch sử phân loại liên quan cũng sẽ bị xóa.')">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                Xóa người dùng
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

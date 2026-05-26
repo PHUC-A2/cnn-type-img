@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'apps.training',
     'apps.predictions',
     'apps.analytics',
+    'apps.monitoring',
     'core',
 ]
 

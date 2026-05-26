@@ -1,0 +1,89 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Bảng quản trị — Vision CNN{% endblock %}
+{% block page_heading %}Bảng quản trị{% endblock %}
+
+{% block content %}
+{% include 'monitoring/partials/admin_nav.html' %}
+
+<div class="mb-4 flex items-center justify-between gap-3">
+    <p class="text-sm text-[#475569]">Theo dõi toàn bộ hệ thống — người dùng, dữ liệu, huấn luyện và phân loại.</p>
+    <span class="aurora-badge">Quản trị viên</span>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Người dùng</p>
+        <p class="text-2xl aurora-metric mt-1">{{ stats.active_users }}<span class="text-sm text-[#94A3B8] font-normal"> / {{ stats.total_users }}</span></p>
+        <a href="{% url 'monitoring:users_list' %}" class="text-xs text-[#0D9488] mt-2 inline-block font-semibold hover:underline">Quản lý →</a>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Bộ dữ liệu</p>
+        <p class="text-2xl aurora-metric mt-1">{{ stats.total_datasets }}</p>
+        <a href="{% url 'monitoring:datasets_list' %}" class="text-xs text-[#0D9488] mt-2 inline-block font-semibold hover:underline">Quản lý →</a>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Mô hình CNN</p>
+        <p class="text-2xl aurora-metric mt-1">{{ stats.total_models }}</p>
+        <a href="{% url 'monitoring:models_list' %}" class="text-xs text-[#0D9488] mt-2 inline-block font-semibold hover:underline">Quản lý →</a>
+    </div>
+    <div class="aurora-card p-5">
+        <p class="text-sm text-[#94A3B8]">Lượt phân loại</p>
+        <p class="text-2xl aurora-metric mt-1">{{ stats.total_predictions }}</p>
+        <a href="{% url 'monitoring:predictions_list' %}" class="text-xs text-[#0D9488] mt-2 inline-block font-semibold hover:underline">Xem log →</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6">
+    <div class="aurora-card p-5">
+        <h3 class="font-bold text-[#0F172A] mb-3">Huấn luyện</h3>
+        <div class="grid grid-cols-3 gap-3 text-sm">
+            <div><span class="text-[#94A3B8]">Tổng job</span><p class="font-bold text-lg">{{ stats.total_training_jobs }}</p></div>
+            <div><span class="text-[#94A3B8]">Hoàn thành</span><p class="font-bold text-lg text-[#10B981]">{{ stats.completed_jobs }}</p></div>
+            <div><span class="text-[#94A3B8]">Thất bại</span><p class="font-bold text-lg text-[#EF4444]">{{ stats.failed_jobs }}</p></div>
+        </div>
+        <a href="{% url 'monitoring:training_list' %}" class="aurora-btn aurora-btn-secondary mt-4 !py-1.5 !px-3 text-xs">Xem job huấn luyện</a>
+    </div>
+    <div class="aurora-card p-5">
+        <h3 class="font-bold text-[#0F172A] mb-3">Độ tin cậy phân loại TB</h3>
+        <p class="text-3xl aurora-metric text-[#8B5CF6]">
+            {% if stats.avg_confidence %}{{ stats.avg_confidence|floatformat:4 }}{% else %}—{% endif %}
+        </p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+    <div class="aurora-card p-5">
+        <h3 class="font-bold text-[#0F172A] mb-4">Người dùng mới</h3>
+        <div class="space-y-3 text-sm">
+            {% for u in stats.recent_users %}
+            <div class="flex items-center justify-between border-b border-[#F1F5F9] pb-2">
+                <div>
+                    <p class="font-semibold">{{ u.get_display_name }}</p>
+                    <p class="text-xs text-[#94A3B8]">@{{ u.username }}</p>
+                </div>
+                <span class="text-xs text-[#94A3B8]">{{ u.created_at|date:"d/m/Y" }}</span>
+            </div>
+            {% empty %}
+            <p class="text-[#94A3B8]">Chưa có dữ liệu.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="aurora-card p-5">
+        <h3 class="font-bold text-[#0F172A] mb-4">Job huấn luyện gần đây</h3>
+        <div class="space-y-3 text-sm">
+            {% for job in stats.recent_jobs %}
+            <div class="flex items-center justify-between border-b border-[#F1F5F9] pb-2 gap-3">
+                <div class="min-w-0">
+                    <p class="font-semibold truncate">{{ job.model.model_name }}</p>
+                    <p class="text-xs text-[#94A3B8]">{{ job.get_status_display_vi }} · {{ job.trained_by.username }}</p>
+                </div>
+                <a href="{% url 'training:detail' job.id %}" class="text-xs text-[#0D9488] font-semibold whitespace-nowrap">Xem →</a>
+            </div>
+            {% empty %}
+            <p class="text-[#94A3B8]">Chưa có job.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if is_create %}Tạo người dùng{% else %}Sửa người dùng{% endif %} — Admin{% endblock %}
+{% block page_heading %}{% if is_create %}Tạo người dùng{% else %}Sửa người dùng{% endif %}{% endblock %}
+
+{% block content %}
+{% include 'monitoring/partials/admin_nav.html' %}
+
+<div class="max-w-2xl">
+    <div class="aurora-card p-6">
+        {% if not is_create and edit_user %}
+        <div class="mb-4">
+            <label class="aurora-label">Email</label>
+            <p class="aurora-input bg-[#F8FAFC] text-[#475569] cursor-not-allowed">{{ edit_user.email }}</p>
+            <p class="text-xs text-[#94A3B8] mt-1">Email không thể thay đổi qua bảng quản trị.</p>
+        </div>
+        {% endif %}
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            {% for field in form %}
+            <div>
+                <label class="aurora-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<p class="text-xs text-[#EF4444] mt-1">{{ field.errors.0 }}</p>{% endif %}
+            </div>
+            {% endfor %}
+            <div class="flex gap-2 pt-2">
+                <button type="submit" class="aurora-btn aurora-btn-primary">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    Lưu
+                </button>
+                <a href="{% url 'monitoring:users_list' %}" class="aurora-btn aurora-btn-secondary">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
