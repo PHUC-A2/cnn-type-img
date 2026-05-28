@@ -51,17 +51,37 @@ body {
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
-/* Desktop: sidebar cố định full-height sát trái */
+/* Desktop: sidebar dính viewport — cuộn riêng vùng main */
 .aurora-sidebar-desktop {
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    flex-shrink: 0;
+    z-index: 30;
     width: var(--aurora-sidebar-w);
     height: 100vh;
     height: 100dvh;
+    max-height: 100dvh;
     border-radius: 0;
     border-top: none;
     border-bottom: none;
     border-left: none;
     box-shadow: none;
     overflow: hidden;
+}
+
+/* Tablet / mobile: overlay fixed (CSS thuần — không phụ thuộc Tailwind) */
+.aurora-sidebar-tablet {
+    position: fixed;
+    z-index: 50;
+}
+
+.aurora-sidebar-mobile {
+    position: fixed;
+    z-index: 50;
+    top: 0;
+    bottom: 0;
+    left: 0;
 }
 
 .aurora-shell-header {
@@ -74,12 +94,32 @@ body {
 }
 
 @media (min-width: 1024px) {
+    /* Chỉ cuộn nội dung chính — sidebar + topbar đứng yên */
+    .app-shell-auth {
+        height: 100dvh;
+        max-height: 100dvh;
+        overflow: hidden;
+    }
+
+    .app-layout-auth {
+        height: 100%;
+        min-height: 0;
+        align-items: stretch;
+        overflow: hidden;
+    }
+
+    .app-layout-auth .main-column {
+        min-height: 0;
+        height: 100%;
+    }
+
     .aurora-topbar.aurora-shell-header {
         border-radius: 0;
         border: none;
         border-bottom: 1px solid var(--aurora-border);
         box-shadow: none;
         background: rgba(255, 255, 255, 0.92);
+        flex-shrink: 0;
     }
 
     .app-layout {

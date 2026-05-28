@@ -76,11 +76,13 @@ document.addEventListener('alpine:init', () => {
                     this.isTabletExpanded() ? 'w-[260px]' : 'w-[72px] aurora-sidebar-collapsed'
                 }`;
             }
-            return 'aurora-sidebar aurora-sidebar-desktop fixed inset-y-0 left-0 flex flex-col z-30 w-[260px] h-screen';
+            // Desktop: sticky trong layout — không dùng fixed (tránh cuộn theo trang khi Tailwind lỗi)
+            return 'aurora-sidebar aurora-sidebar-desktop flex flex-col z-30 w-[260px] h-screen flex-shrink-0';
         },
 
         spacerClass() {
-            if (this.viewport === 'desktop') return 'block w-[260px] flex-shrink-0';
+            // Desktop: sidebar nằm trong flex — không cần spacer
+            if (this.viewport === 'desktop') return 'hidden';
             if (this.viewport === 'mobile') return 'hidden';
             return this.isTabletExpanded()
                 ? 'block w-[276px] flex-shrink-0'
